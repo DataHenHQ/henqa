@@ -15,8 +15,9 @@
 package cmd
 
 import (
+	"fmt"
+
 	"github.com/DataHenHQ/henqa/qa"
-	"github.com/google/martian/log"
 	"github.com/spf13/cobra"
 )
 
@@ -38,18 +39,18 @@ henqa validate ./dir1 ./dir2 -s schema1.jos -s schema2.json -r myreport
 		)
 		schemas, err = cmd.Flags().GetStringSlice("schema")
 		if err != nil {
-			log.Errorf("Gotten error: %v\n", err.Error())
+			fmt.Errorf("Gotten error: %v\n", err.Error())
 			return
 		}
 		outDir, err = cmd.Flags().GetString("reports-dir")
 		if err != nil {
-			log.Errorf("Gotten error: %v\n", err.Error())
+			fmt.Errorf("Gotten error: %v\n", err.Error())
 			return
 		}
 
 		err = qa.Validate(args, schemas, outDir)
 		if err != nil {
-			log.Errorf("Gotten error: %v\n", err.Error())
+			fmt.Errorf("Gotten error: %v\n", err.Error())
 			return
 		}
 	},
