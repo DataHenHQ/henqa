@@ -26,6 +26,7 @@ var validateCmd = &cobra.Command{
 	Use:   "validate",
 	Short: "Validates the input data files using JSON schema files and creates reports.",
 	Long: `Validates the input data files using JSON schema files and creates reports.
+If multiple schema files is supplied, the later will merge with the former using "JSON Merge Patch" method.
 For example:
 henqa validate file1.csv file2.csv -s schema1.json -s schema2.json
 henqa validate ./dir1 ./dir2 -s schema1.jos -s schema2.json -r myreport

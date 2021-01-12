@@ -5,6 +5,8 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+
+	jsonpatch "github.com/evanphx/json-patch/v5"
 )
 
 func Validate(ins []string, schemas []string, outDir string) (err error) {
@@ -17,6 +19,15 @@ func Validate(ins []string, schemas []string, outDir string) (err error) {
 	for _, f := range files {
 		fmt.Println(f)
 	}
+
+	mergedSchema, err := getAndMergeSchemaFiles(schemas)
+	if err != nil {
+		fmt.Println("gotten error with merging schemas:", err.Error())
+		fmt.Println("aborting operation.")
+	}
+	fmt.Println("merged Schema:")
+	fmt.Println(string(mergedSchema))
+
 	return nil
 }
 
@@ -69,4 +80,29 @@ func getFilesFromDir(dir string) (files []string) {
 
 	}
 	return files
+}
+
+func getAndMergeSchemaFiles(files []string) (schema []byte, err error) {
+
+	for _, f := range files {
+		nschema, err := ioutil.ReadFile(f)
+		if err != nil {
+			return nil, err
+		}
+
+		if schema == nil {
+			schema = nschema
+			continue
+		}
+
+		newSchema, err := jsonpatch.MergeMergePatches(schema, nschema)
+		if err != nil {
+			fmt.Print("cannot merge schema:", err.Error())
+			return nil, err
+		}
+
+		schema = newSchema
+
+	}
+	return schema, nil
 }
