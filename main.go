@@ -14,7 +14,7 @@
 
 package main
 
-import "henqa/cmd"
+import "github.com/DataHenHQ/henqa/cmd"
 
 func main() {
 	cmd.Execute()
