@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 
 	jsonpatch "github.com/evanphx/json-patch/v5"
+	"github.com/xeipuuv/gojsonschema"
 )
 
 func Validate(ins []string, schemas []string, outDir string) (err error) {
@@ -27,6 +28,11 @@ func Validate(ins []string, schemas []string, outDir string) (err error) {
 	}
 	fmt.Println("merged Schema:")
 	fmt.Println(string(mergedSchema))
+
+	err = validateWithSchema(files, mergedSchema, outDir)
+	if err != nil {
+		fmt.Println("gotten error running the validation:", err.Error())
+	}
 
 	return nil
 }
@@ -105,4 +111,33 @@ func getAndMergeSchemaFiles(files []string) (schema []byte, err error) {
 
 	}
 	return schema, nil
+}
+
+func validateWithSchema(files []string, schema []byte, outDir string) (err error) {
+	schemaSl := gojsonschema.NewStringLoader(string(schema))
+	sl := gojsonschema.NewSchemaLoader()
+	sl.Validate = true
+	err = sl.AddSchemas(schemaSl)
+	if err != nil {
+		return err
+	}
+
+	for _, f := range files {
+		jsonB, err := ioutil.ReadFile(f)
+		if err != nil {
+			fmt.Println("gotten error reading ", f, ":", err.Error())
+			continue
+		}
+
+		doc := gojsonschema.NewStringLoader(string(jsonB))
+
+		res, err := gojsonschema.Validate(schemaSl, doc)
+		if err != nil {
+			fmt.Println("gotten validation error:", err)
+		}
+
+		fmt.Println("validation result:", res.Errors())
+	}
+
+	return nil
 }
