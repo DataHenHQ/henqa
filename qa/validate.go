@@ -26,6 +26,8 @@ type ErrorStat struct {
 	ErrorPercent     float64 `json:"error_percent"`
 }
 
+type ErrorStats map[string]*ErrorStat
+
 func (e *ErrorStat) IncErrCount() {
 	e.ErrorCount = e.ErrorCount + 1
 }
@@ -152,6 +154,8 @@ func validateWithSchema(files []string, schema []byte, outDir string) (err error
 		return err
 	}
 
+	summaryErrStats := map[string]ErrorStats{}
+
 	for _, f := range files {
 		jsonB, err := ioutil.ReadFile(f)
 		if err != nil {
@@ -161,10 +165,19 @@ func validateWithSchema(files []string, schema []byte, outDir string) (err error
 
 		colrecs, _, err := records.PlainSchemaValidateFromJSON(string(schema), string(jsonB))
 
-		if err := writeValidationOutputs(outDir, f, colrecs); err != nil {
+		errStats, err := writeValidationOutputs(outDir, f, colrecs)
+		if err != nil {
 			return err
 		}
 
+		basefile := filepath.Base(f)
+
+		summaryErrStats[basefile] = errStats
+
+	}
+
+	if err := writeOverallSummaryFile(outDir, summaryErrStats); err != nil {
+		return err
 	}
 
 	return nil
@@ -177,9 +190,25 @@ func createOutDirIfNotExist(path string) (err error) {
 	return nil
 }
 
-func writeValidationOutputs(outDir string, infilepath string, colrecs map[string][]records.RecordGetSetterWithError) (err error) {
+func writeOverallSummaryFile(outDir string, summaryErrStats map[string]ErrorStats) (err error) {
 	if err := createOutDirIfNotExist(outDir); err != nil {
 		return err
+	}
+
+	// save summary data
+	summaryData, err := json.MarshalIndent(summaryErrStats, "", " ")
+	if err != nil {
+		return err
+	}
+	summaryFile := filepath.Join(outDir, "summary.json")
+	ioutil.WriteFile(summaryFile, summaryData, 0644)
+
+	return nil
+}
+
+func writeValidationOutputs(outDir string, infilepath string, colrecs map[string][]records.RecordGetSetterWithError) (errStats map[string]*ErrorStat, err error) {
+	if err := createOutDirIfNotExist(outDir); err != nil {
+		return nil, err
 	}
 
 	infile := filepath.Base(infilepath)
@@ -194,7 +223,7 @@ func writeValidationOutputs(outDir string, infilepath string, colrecs map[string
 	recordCount := len(recs)
 
 	recWs := []RecordWrapper{}
-	errStats := map[string]*ErrorStat{}
+	errStats = map[string]*ErrorStat{}
 
 	for _, rec := range recs {
 		o := records.TransformToRecordJSONB(rec)
@@ -238,7 +267,7 @@ func writeValidationOutputs(outDir string, infilepath string, colrecs map[string
 	// save details data
 	detailsData, err := json.MarshalIndent(recWs, "", " ")
 	if err != nil {
-		return err
+		return nil, err
 	}
 	detailsFile := filepath.Join(detailsDir, infile)
 	ioutil.WriteFile(detailsFile, detailsData, 0644)
@@ -246,10 +275,10 @@ func writeValidationOutputs(outDir string, infilepath string, colrecs map[string
 	// save summary
 	summaryData, err := json.MarshalIndent(errStats, "", " ")
 	if err != nil {
-		return err
+		return nil, err
 	}
 	summaryFile := filepath.Join(summaryDir, infile)
 	ioutil.WriteFile(summaryFile, summaryData, 0644)
 
-	return
+	return errStats, nil
 }
