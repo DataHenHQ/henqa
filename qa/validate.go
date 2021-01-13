@@ -65,6 +65,7 @@ func Validate(ins []string, schemas []string, outDir string) (err error) {
 		fmt.Println("gotten error running the validation:", err.Error())
 	}
 
+	fmt.Println("Done validating record. The report folder would be located at", outDir)
 	return nil
 }
 
