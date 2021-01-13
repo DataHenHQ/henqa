@@ -55,7 +55,8 @@ func Validate(ins []string, schemas []string, outDir string) (err error) {
 	mergedSchema, err := getAndMergeSchemaFiles(schemas)
 	if err != nil {
 		fmt.Println("gotten error with merging schemas:", err.Error())
-		fmt.Println("aborting operation.")
+		fmt.Println("aborting validation.")
+		return
 	}
 	// fmt.Println("merged Schema:")
 	// fmt.Println(string(mergedSchema))
@@ -63,6 +64,8 @@ func Validate(ins []string, schemas []string, outDir string) (err error) {
 	err = validateWithSchema(files, mergedSchema, outDir)
 	if err != nil {
 		fmt.Println("gotten error running the validation:", err.Error())
+		fmt.Println("aborting validation.")
+		return
 	}
 
 	fmt.Println("Done validating record. The report folder would be located at", outDir)
@@ -123,6 +126,7 @@ func getFilesFromDir(dir string) (files []string) {
 func getAndMergeSchemaFiles(files []string) (schema []byte, err error) {
 
 	for _, f := range files {
+
 		nschema, err := ioutil.ReadFile(f)
 		if err != nil {
 			return nil, err
