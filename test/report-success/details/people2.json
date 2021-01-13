@@ -1,0 +1,19 @@
+[
+ {
+  "errors": [
+   {
+    "field": "(root)",
+    "error_type": "required",
+    "description": "age is required",
+    "value": {
+     "firstName": "Sally",
+     "lastName": "Seller"
+    }
+   }
+  ],
+  "record": {
+   "firstName": "Sally",
+   "lastName": "Seller"
+  }
+ }
+]

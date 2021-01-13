@@ -1,0 +1,13 @@
+{
+ "people1.json": {},
+ "people2.json": {
+  "(root).required": {
+   "field": "(root)",
+   "error_type": "required",
+   "error_description": "age is required",
+   "error_count": 1,
+   "record_count": 1,
+   "error_percent": 100
+  }
+ }
+}
