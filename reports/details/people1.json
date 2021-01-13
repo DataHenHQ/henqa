@@ -1,0 +1,80 @@
+[
+ {
+  "errors": [
+   {
+    "field": "lastName",
+    "error_type": "invalid_type",
+    "description": "Invalid type. Expected: integer, given: string",
+    "value": "Doe"
+   }
+  ],
+  "record": {
+   "age": 40,
+   "firstName": "Maggie",
+   "lastName": "Doe"
+  }
+ },
+ {
+  "errors": [
+   {
+    "field": "lastName",
+    "error_type": "invalid_type",
+    "description": "Invalid type. Expected: integer, given: string",
+    "value": "Doe"
+   },
+   {
+    "field": "age",
+    "error_type": "number_gte",
+    "description": "Must be greater than or equal to 30",
+    "value": 10
+   }
+  ],
+  "record": {
+   "age": 10,
+   "firstName": "Kevin",
+   "lastName": "Doe"
+  }
+ },
+ {
+  "errors": [
+   {
+    "field": "lastName",
+    "error_type": "invalid_type",
+    "description": "Invalid type. Expected: integer, given: string",
+    "value": "Doe"
+   },
+   {
+    "field": "age",
+    "error_type": "number_gte",
+    "description": "Must be greater than or equal to 30",
+    "value": 5
+   }
+  ],
+  "record": {
+   "age": 5,
+   "firstName": "David",
+   "lastName": "Doe"
+  }
+ },
+ {
+  "errors": [
+   {
+    "field": "lastName",
+    "error_type": "invalid_type",
+    "description": "Invalid type. Expected: integer, given: string",
+    "value": "Doe"
+   },
+   {
+    "field": "age",
+    "error_type": "number_gte",
+    "description": "Must be greater than or equal to 30",
+    "value": 21
+   }
+  ],
+  "record": {
+   "age": 21,
+   "firstName": "John",
+   "lastName": "Doe"
+  }
+ }
+]

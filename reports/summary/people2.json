@@ -1,0 +1,10 @@
+{
+ "lastName.invalid_type": {
+  "field": "lastName",
+  "error_type": "invalid_type",
+  "error_description": "Invalid type. Expected: integer, given: string",
+  "error_count": 1,
+  "record_count": 1,
+  "error_percent": 100
+ }
+}

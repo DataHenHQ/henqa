@@ -5,6 +5,11 @@
       "description": "Age in years which must be equal to or greater than 30.",
       "type": "integer",
       "minimum": 30
+    },
+    "lastName": {
+      "description": "last name Must be integer",
+      "type": "integer",
+      "minimum": 30
     }
   }
 }

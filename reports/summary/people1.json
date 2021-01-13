@@ -1,0 +1,18 @@
+{
+ "age.number_gte": {
+  "field": "age",
+  "error_type": "number_gte",
+  "error_description": "Must be greater than or equal to 30",
+  "error_count": 3,
+  "record_count": 4,
+  "error_percent": 75
+ },
+ "lastName.invalid_type": {
+  "field": "lastName",
+  "error_type": "invalid_type",
+  "error_description": "Invalid type. Expected: integer, given: string",
+  "error_count": 4,
+  "record_count": 4,
+  "error_percent": 100
+ }
+}

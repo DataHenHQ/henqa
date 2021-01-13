@@ -1,14 +1,43 @@
 package qa
 
 import (
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 
+	"github.com/DataHenHQ/datahen/records"
 	jsonpatch "github.com/evanphx/json-patch/v5"
 	"github.com/xeipuuv/gojsonschema"
 )
+
+type RecordWrapper struct {
+	Errors []records.SchemaError `json:"errors"`
+	Record interface{}           `json:"record"`
+}
+
+type ErrorStat struct {
+	Field            string  `json:"field"`
+	ErrorType        string  `json:"error_type"`
+	ErrorDescription string  `json:"error_description"`
+	ErrorCount       uint64  `json:"error_count"`
+	RecordCount      uint64  `json:"record_count"`
+	ErrorPercent     float64 `json:"error_percent"`
+}
+
+func (e *ErrorStat) IncErrCount() {
+	e.ErrorCount = e.ErrorCount + 1
+}
+
+func (e *ErrorStat) CalculatePercentage() {
+	e.ErrorPercent = float64(e.ErrorCount) / float64(e.RecordCount) * 100.0
+}
+
+type RecordsValidationResult struct {
+	Collections map[string][]RecordWrapper         `json:"collections"`
+	Stats       map[string]*records.CollectionStat `json:"stats"`
+}
 
 func Validate(ins []string, schemas []string, outDir string) (err error) {
 	fmt.Println("validates the data in:", ins, "schemas:", schemas, "outDir:", outDir)
@@ -26,8 +55,8 @@ func Validate(ins []string, schemas []string, outDir string) (err error) {
 		fmt.Println("gotten error with merging schemas:", err.Error())
 		fmt.Println("aborting operation.")
 	}
-	fmt.Println("merged Schema:")
-	fmt.Println(string(mergedSchema))
+	// fmt.Println("merged Schema:")
+	// fmt.Println(string(mergedSchema))
 
 	err = validateWithSchema(files, mergedSchema, outDir)
 	if err != nil {
@@ -114,6 +143,7 @@ func getAndMergeSchemaFiles(files []string) (schema []byte, err error) {
 }
 
 func validateWithSchema(files []string, schema []byte, outDir string) (err error) {
+
 	schemaSl := gojsonschema.NewStringLoader(string(schema))
 	sl := gojsonschema.NewSchemaLoader()
 	sl.Validate = true
@@ -129,15 +159,97 @@ func validateWithSchema(files []string, schema []byte, outDir string) (err error
 			continue
 		}
 
-		doc := gojsonschema.NewStringLoader(string(jsonB))
+		colrecs, _, err := records.PlainSchemaValidateFromJSON(string(schema), string(jsonB))
 
-		res, err := gojsonschema.Validate(schemaSl, doc)
-		if err != nil {
-			fmt.Println("gotten validation error:", err)
+		if err := writeValidationOutputs(outDir, f, colrecs); err != nil {
+			return err
 		}
 
-		fmt.Println("validation result:", res.Errors())
 	}
 
 	return nil
+}
+
+func createOutDirIfNotExist(path string) (err error) {
+	if _, err := os.Stat(path); os.IsNotExist(err) {
+		return os.Mkdir(path, os.ModeDir|0755)
+	}
+	return nil
+}
+
+func writeValidationOutputs(outDir string, infilepath string, colrecs map[string][]records.RecordGetSetterWithError) (err error) {
+	if err := createOutDirIfNotExist(outDir); err != nil {
+		return err
+	}
+
+	infile := filepath.Base(infilepath)
+
+	detailsDir := filepath.Join(outDir, "details")
+	summaryDir := filepath.Join(outDir, "summary")
+	createOutDirIfNotExist(detailsDir)
+	createOutDirIfNotExist(summaryDir)
+
+	recs := colrecs["default"]
+
+	recordCount := len(recs)
+
+	recWs := []RecordWrapper{}
+	errStats := map[string]*ErrorStat{}
+
+	for _, rec := range recs {
+		o := records.TransformToRecordJSONB(rec)
+
+		// delete any unused field from datahen's output records
+		delete(o, "_collection")
+
+		errs := rec.GetErrors()
+		if errs == nil {
+			continue
+		}
+
+		for _, e := range errs {
+			errKey := fmt.Sprintf("%v.%v", e.Field, e.ErrorType)
+
+			// if it doesn't exist then set a new record
+			if errStats[errKey] == nil {
+				es := ErrorStat{
+					Field:            e.Field,
+					ErrorType:        e.ErrorType,
+					ErrorDescription: e.Description,
+					ErrorCount:       1,
+					RecordCount:      uint64(recordCount),
+				}
+				es.CalculatePercentage()
+				errStats[errKey] = &es
+				continue
+			}
+
+			errStats[errKey].IncErrCount()
+			errStats[errKey].CalculatePercentage()
+
+		}
+
+		recWs = append(recWs, RecordWrapper{
+			Errors: errs,
+			Record: o,
+		})
+	}
+
+	// save details data
+	detailsData, err := json.MarshalIndent(recWs, "", " ")
+	if err != nil {
+		return err
+	}
+	detailsFile := filepath.Join(detailsDir, infile)
+	ioutil.WriteFile(detailsFile, detailsData, 0644)
+
+	// save summary
+	summaryData, err := json.MarshalIndent(errStats, "", " ")
+	if err != nil {
+		return err
+	}
+	summaryFile := filepath.Join(summaryDir, infile)
+	ioutil.WriteFile(summaryFile, summaryData, 0644)
+
+	return
 }
