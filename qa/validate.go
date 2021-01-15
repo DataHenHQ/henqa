@@ -48,12 +48,12 @@ func Validate(ins []string, schemas []string, outDir string) (err error) {
 	fmt.Println("validates the data in:", ins, "schemas:", schemas, "outDir:", outDir)
 
 	files := getListOfFiles(ins)
-	if len(files) > 0 {
-		fmt.Println("input files are:")
-	}
-	for _, f := range files {
-		fmt.Println(f)
-	}
+	// if len(files) > 0 {
+	// 	fmt.Println("input files are:")
+	// }
+	// for _, f := range files {
+	// 	fmt.Println(f)
+	// }
 
 	mergedSchema, err := getAndMergeSchemaFiles(schemas)
 	if err != nil {
@@ -77,7 +77,6 @@ func Validate(ins []string, schemas []string, outDir string) (err error) {
 
 func getListOfFiles(ins []string) (files []string) {
 	for _, in := range ins {
-		fmt.Println("checking in:", in)
 
 		if isDir(in) {
 			subDirFiles := getFilesFromDir(in)
@@ -180,6 +179,7 @@ func validateWithSchema(files []string, schema []byte, outDir string) (err error
 			fmt.Println("gotten error reading ", f, ":", err.Error())
 			continue
 		}
+		fmt.Println("validating:", f)
 
 		colrecs, _, err := records.PlainSchemaValidateFromJSON(string(schema), string(inData))
 

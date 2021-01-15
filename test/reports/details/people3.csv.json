@@ -65,16 +65,16 @@
  {
   "errors": [
    {
-    "field": "lastName",
-    "error_type": "invalid_type",
-    "description": "Invalid type. Expected: integer, given: string",
-    "value": "Smith"
-   },
-   {
     "field": "age",
     "error_type": "invalid_type",
     "description": "Invalid type. Expected: integer, given: string",
     "value": "31"
+   },
+   {
+    "field": "lastName",
+    "error_type": "invalid_type",
+    "description": "Invalid type. Expected: integer, given: string",
+    "value": "Smith"
    }
   ],
   "record": {
