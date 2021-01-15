@@ -214,7 +214,7 @@ func writeOverallSummaryFile(outDir string, summaryErrStats map[string]ErrorStat
 	}
 
 	// save summary data
-	summaryData, err := json.MarshalIndent(summaryErrStats, "", " ")
+	summaryData, err := json.MarshalIndent(summaryErrStats, "", "  ")
 	if err != nil {
 		return err
 	}
@@ -283,7 +283,7 @@ func writeValidationOutputs(outDir string, infilepath string, colrecs map[string
 	}
 
 	// save details data
-	detailsData, err := json.MarshalIndent(recWs, "", " ")
+	detailsData, err := json.MarshalIndent(recWs, "", "  ")
 	if err != nil {
 		return nil, err
 	}
@@ -291,7 +291,7 @@ func writeValidationOutputs(outDir string, infilepath string, colrecs map[string
 	ioutil.WriteFile(detailsFile, detailsData, 0644)
 
 	// save summary
-	summaryData, err := json.MarshalIndent(errStats, "", " ")
+	summaryData, err := json.MarshalIndent(errStats, "", "  ")
 	if err != nil {
 		return nil, err
 	}
@@ -326,6 +326,7 @@ func readCSVFileAsJSON(filename string) (jsonB []byte, err error) {
 		log.Fatal(err)
 	}
 
+	// line := 1
 	// read the body of the csv
 	for {
 		cols, err := reader.Read()
@@ -340,6 +341,10 @@ func readCSVFileAsJSON(filename string) (jsonB []byte, err error) {
 		for i, col := range cols {
 			record[headers[i]] = col
 		}
+
+		// line++
+		// fmt.Println("line:", line)
+		// fmt.Println(cols)
 
 		records = append(records, record)
 	}
