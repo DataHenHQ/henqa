@@ -1,9 +1,12 @@
 package qa
 
 import (
+	"encoding/csv"
 	"encoding/json"
 	"fmt"
+	"io"
 	"io/ioutil"
+	"log"
 	"os"
 	"path/filepath"
 
@@ -162,13 +165,23 @@ func validateWithSchema(files []string, schema []byte, outDir string) (err error
 	summaryErrStats := map[string]ErrorStats{}
 
 	for _, f := range files {
-		jsonB, err := ioutil.ReadFile(f)
+		inData := []byte{}
+
+		switch filepath.Ext(f) {
+		case ".csv":
+			inData, err = readCSVFileAsJSON(f)
+		case ".json":
+			inData, err = readFile(f)
+		default:
+			fmt.Println(f, "is not a .csv or .json file. Skipping")
+			continue
+		}
 		if err != nil {
 			fmt.Println("gotten error reading ", f, ":", err.Error())
 			continue
 		}
 
-		colrecs, _, err := records.PlainSchemaValidateFromJSON(string(schema), string(jsonB))
+		colrecs, _, err := records.PlainSchemaValidateFromJSON(string(schema), string(inData))
 
 		errStats, err := writeValidationOutputs(outDir, f, colrecs)
 		if err != nil {
@@ -274,7 +287,7 @@ func writeValidationOutputs(outDir string, infilepath string, colrecs map[string
 	if err != nil {
 		return nil, err
 	}
-	detailsFile := filepath.Join(detailsDir, infile)
+	detailsFile := fmt.Sprintf("%v.json", filepath.Join(detailsDir, infile))
 	ioutil.WriteFile(detailsFile, detailsData, 0644)
 
 	// save summary
@@ -282,8 +295,59 @@ func writeValidationOutputs(outDir string, infilepath string, colrecs map[string
 	if err != nil {
 		return nil, err
 	}
-	summaryFile := filepath.Join(summaryDir, infile)
+	summaryFile := fmt.Sprintf("%v.json", filepath.Join(summaryDir, infile))
 	ioutil.WriteFile(summaryFile, summaryData, 0644)
 
 	return errStats, nil
+}
+
+func readFile(filename string) (data []byte, err error) {
+	data, err = ioutil.ReadFile(filename)
+	if err != nil {
+		fmt.Println("gotten error reading ", filename, ":", err.Error())
+		return nil, err
+	}
+
+	return data, nil
+}
+
+func readCSVFileAsJSON(filename string) (jsonB []byte, err error) {
+	csvFile, err := os.Open(filename)
+	defer csvFile.Close()
+	reader := csv.NewReader(csvFile)
+
+	records := []map[string]string{}
+
+	// read the headers on the first row
+	headers, err := reader.Read()
+	if err == io.EOF {
+		return nil, nil
+	} else if err != nil {
+		log.Fatal(err)
+	}
+
+	// read the body of the csv
+	for {
+		cols, err := reader.Read()
+		if err == io.EOF {
+			break
+		} else if err != nil {
+			log.Fatal(err)
+		}
+
+		// loop through and build the record
+		record := map[string]string{}
+		for i, col := range cols {
+			record[headers[i]] = col
+		}
+
+		records = append(records, record)
+	}
+
+	jsonB, err = json.Marshal(records)
+	if err != nil {
+		return nil, err
+	}
+
+	return jsonB, nil
 }
