@@ -1,12 +1,9 @@
 package qa
 
 import (
-	"encoding/csv"
 	"encoding/json"
 	"fmt"
-	"io"
 	"io/ioutil"
-	"log"
 	"os"
 	"path/filepath"
 
@@ -14,6 +11,8 @@ import (
 	jsonpatch "github.com/evanphx/json-patch/v5"
 	"github.com/xeipuuv/gojsonschema"
 )
+
+type processFileStreamFn func(string, int, records.ValidateFn) error
 
 type RecordWrapper struct {
 	Errors []records.SchemaError `json:"errors"`
@@ -63,6 +62,14 @@ func Validate(ins []string, schemas []string, outDir string) (err error) {
 	}
 	// fmt.Println("merged Schema:")
 	// fmt.Println(string(mergedSchema))
+
+	// ensure output dir exists
+	err = createOutDirIfNotExist(outDir)
+	if err != nil {
+		fmt.Println("gotten error creating output directory:", err.Error())
+		fmt.Println("aborting validation.")
+		return
+	}
 
 	err = validateWithSchema(files, mergedSchema, outDir)
 	if err != nil {
@@ -115,7 +122,12 @@ func isDir(filename string) bool {
 func getFilesFromDir(dir string) (files []string) {
 	fs, _ := ioutil.ReadDir(dir)
 	for _, f := range fs {
+		subPath := filepath.Join(dir, f.Name())
 		if f.IsDir() {
+			subFiles := getFilesFromDir(subPath)
+			for _, sf := range subFiles {
+				files = append(files, sf)
+			}
 			continue
 		}
 
@@ -152,8 +164,8 @@ func getAndMergeSchemaFiles(files []string) (schema []byte, err error) {
 }
 
 func validateWithSchema(files []string, schema []byte, outDir string) (err error) {
-
-	schemaSl := gojsonschema.NewStringLoader(string(schema))
+	schemaString := string(schema)
+	schemaSl := gojsonschema.NewStringLoader(schemaString)
 	sl := gojsonschema.NewSchemaLoader()
 	sl.Validate = true
 	err = sl.AddSchemas(schemaSl)
@@ -161,16 +173,21 @@ func validateWithSchema(files []string, schema []byte, outDir string) (err error
 		return err
 	}
 
-	summaryErrStats := map[string]ErrorStats{}
+	// build schema
+	loader := gojsonschema.NewStringLoader(schemaString)
+	colSchemaLoaders := make(map[string]*gojsonschema.JSONLoader)
+	colSchemaLoaders["default"] = &loader
 
+	summaryErrStats := map[string]ErrorStats{}
+	batchSize := 100
 	for _, f := range files {
-		inData := []byte{}
+		var processFile processFileStreamFn = nil
 
 		switch filepath.Ext(f) {
 		case ".csv":
-			inData, err = readCSVFileAsJSON(f)
+			processFile = records.ProcessCSVFile
 		case ".json":
-			inData, err = readFile(f)
+			processFile = records.ProcessJSONFile
 		default:
 			fmt.Println(f, "is not a .csv or .json file. Skipping")
 			continue
@@ -181,17 +198,46 @@ func validateWithSchema(files []string, schema []byte, outDir string) (err error
 		}
 		fmt.Println("validating:", f)
 
-		colrecs, _, err := records.PlainSchemaValidateFromJSON(string(schema), string(inData))
-
-		errStats, err := writeValidationOutputs(outDir, f, colrecs)
+		// init detail file
+		err = initDetailFile(outDir, f)
 		if err != nil {
+			fmt.Println("gotten error initializing output files for ", f, ":", err.Error())
 			return err
 		}
 
+		// process the files and keep stats
+		colstats := make(map[string]*records.CollectionStat)
+		errStats := map[string]*ErrorStat{}
+		var recordCount uint64 = 0
+		isFirst := true
+		processFile(f, batchSize, func(recs []records.RecordGetSetterWithError) (err2 error) {
+			colrecs := records.SchemaLoadersValidate(colSchemaLoaders, recs, colstats)
+			recordCount += uint64(len(colrecs["default"]))
+			err2 = writeValidationOutputs(outDir, f, colrecs, errStats, isFirst)
+			if err2 != nil {
+				return err2
+			}
+			isFirst = false
+
+			return nil
+		})
+
+		// close defail file
+		err = closeDetailFile(outDir, f)
+		if err != nil {
+			fmt.Println("gotten error initializing output files for ", f, ":", err.Error())
+			return err
+		}
+
+		// fix errStats record counters and write summary
+		for _, es := range errStats {
+			es.RecordCount = recordCount
+			es.CalculatePercentage()
+		}
+		writeSummaryOutputs(outDir, f, errStats)
+
 		basefile := filepath.Base(f)
-
 		summaryErrStats[basefile] = errStats
-
 	}
 
 	if err := writeOverallSummaryFile(outDir, summaryErrStats); err != nil {
@@ -205,6 +251,47 @@ func createOutDirIfNotExist(path string) (err error) {
 	if _, err := os.Stat(path); os.IsNotExist(err) {
 		return os.Mkdir(path, os.ModeDir|0755)
 	}
+	return nil
+}
+
+func initDetailFile(outDir string, infilepath string) (err error) {
+	infile := filepath.Base(infilepath)
+
+	// clear and init details file
+	detailsDir := filepath.Join(outDir, "details")
+	err = createOutDirIfNotExist(detailsDir)
+	if err != nil {
+		return err
+	}
+	detailsFile := fmt.Sprintf("%v.json", filepath.Join(detailsDir, infile))
+	err = ioutil.WriteFile(detailsFile, []byte("["), 0644)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func closeDetailFile(outDir string, infilepath string) (err error) {
+	infile := filepath.Base(infilepath)
+
+	// close details file
+	detailsDir := filepath.Join(outDir, "details")
+	err = createOutDirIfNotExist(detailsDir)
+	if err != nil {
+		return err
+	}
+	detailsFile := fmt.Sprintf("%v.json", filepath.Join(detailsDir, infile))
+	f, err := os.OpenFile(detailsFile, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0644)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+	_, err = f.WriteString("\n]")
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -224,24 +311,21 @@ func writeOverallSummaryFile(outDir string, summaryErrStats map[string]ErrorStat
 	return nil
 }
 
-func writeValidationOutputs(outDir string, infilepath string, colrecs map[string][]records.RecordGetSetterWithError) (errStats map[string]*ErrorStat, err error) {
+func writeValidationOutputs(outDir string, infilepath string, colrecs map[string][]records.RecordGetSetterWithError, errStats map[string]*ErrorStat, isFirst bool) (err error) {
 	if err := createOutDirIfNotExist(outDir); err != nil {
-		return nil, err
+		return err
 	}
 
 	infile := filepath.Base(infilepath)
-
 	detailsDir := filepath.Join(outDir, "details")
-	summaryDir := filepath.Join(outDir, "summary")
-	createOutDirIfNotExist(detailsDir)
-	createOutDirIfNotExist(summaryDir)
+	err = createOutDirIfNotExist(detailsDir)
+	if err != nil {
+		return err
+	}
 
 	recs := colrecs["default"]
 
-	recordCount := len(recs)
-
 	recWs := []RecordWrapper{}
-	errStats = map[string]*ErrorStat{}
 
 	for _, rec := range recs {
 		o := records.TransformToRecordJSONB(rec)
@@ -264,7 +348,7 @@ func writeValidationOutputs(outDir string, infilepath string, colrecs map[string
 					ErrorType:        e.ErrorType,
 					ErrorDescription: e.Description,
 					ErrorCount:       1,
-					RecordCount:      uint64(recordCount),
+					RecordCount:      0,
 				}
 				es.CalculatePercentage()
 				errStats[errKey] = &es
@@ -272,8 +356,6 @@ func writeValidationOutputs(outDir string, infilepath string, colrecs map[string
 			}
 
 			errStats[errKey].IncErrCount()
-			errStats[errKey].CalculatePercentage()
-
 		}
 
 		recWs = append(recWs, RecordWrapper{
@@ -282,23 +364,59 @@ func writeValidationOutputs(outDir string, infilepath string, colrecs map[string
 		})
 	}
 
-	// save details data
+	// prepare details data to save and remove array wrappers
 	detailsData, err := json.MarshalIndent(recWs, "", "  ")
 	if err != nil {
-		return nil, err
+		return err
 	}
+	detailsData = detailsData[1 : len(detailsData)-2]
+
+	// write details data
 	detailsFile := fmt.Sprintf("%v.json", filepath.Join(detailsDir, infile))
-	ioutil.WriteFile(detailsFile, detailsData, 0644)
+	f, err := os.OpenFile(detailsFile, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0644)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+	if !isFirst {
+		// write a comma to join with previous record when not first record set
+		_, err = f.WriteString(",")
+		if err != nil {
+			return err
+		}
+	}
+	_, err = f.Write(detailsData)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func writeSummaryOutputs(outDir string, infilepath string, errStats map[string]*ErrorStat) (err error) {
+	if err := createOutDirIfNotExist(outDir); err != nil {
+		return err
+	}
+
+	infile := filepath.Base(infilepath)
+	summaryDir := filepath.Join(outDir, "summary")
+	err = createOutDirIfNotExist(summaryDir)
+	if err != nil {
+		return err
+	}
 
 	// save summary
 	summaryData, err := json.MarshalIndent(errStats, "", "  ")
 	if err != nil {
-		return nil, err
+		return err
 	}
 	summaryFile := fmt.Sprintf("%v.json", filepath.Join(summaryDir, infile))
-	ioutil.WriteFile(summaryFile, summaryData, 0644)
+	err = ioutil.WriteFile(summaryFile, summaryData, 0644)
+	if err != nil {
+		return err
+	}
 
-	return errStats, nil
+	return nil
 }
 
 func readFile(filename string) (data []byte, err error) {
@@ -309,50 +427,4 @@ func readFile(filename string) (data []byte, err error) {
 	}
 
 	return data, nil
-}
-
-func readCSVFileAsJSON(filename string) (jsonB []byte, err error) {
-	csvFile, err := os.Open(filename)
-	defer csvFile.Close()
-	reader := csv.NewReader(csvFile)
-
-	records := []map[string]string{}
-
-	// read the headers on the first row
-	headers, err := reader.Read()
-	if err == io.EOF {
-		return nil, nil
-	} else if err != nil {
-		log.Fatal(err)
-	}
-
-	// line := 1
-	// read the body of the csv
-	for {
-		cols, err := reader.Read()
-		if err == io.EOF {
-			break
-		} else if err != nil {
-			log.Fatal(err)
-		}
-
-		// loop through and build the record
-		record := map[string]string{}
-		for i, col := range cols {
-			record[headers[i]] = col
-		}
-
-		// line++
-		// fmt.Println("line:", line)
-		// fmt.Println(cols)
-
-		records = append(records, record)
-	}
-
-	jsonB, err = json.Marshal(records)
-	if err != nil {
-		return nil, err
-	}
-
-	return jsonB, nil
 }

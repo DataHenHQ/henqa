@@ -43,7 +43,7 @@ henqa validate ./dir1 ./dir2 -s schema1.jos -s schema2.json -r myreport
 			fmt.Errorf("Gotten error: %v\n", err.Error())
 			return
 		}
-		outDir, err = cmd.Flags().GetString("reports-dir")
+		outDir, err = cmd.Flags().GetString("output-dir")
 		if err != nil {
 			fmt.Errorf("Gotten error: %v\n", err.Error())
 			return
@@ -62,6 +62,6 @@ var schemas string
 func init() {
 	rootCmd.AddCommand(validateCmd)
 	validateCmd.Flags().StringSliceP("schema", "s", nil, "JSON schema file to use if multiple is specified, the latter will override the former")
-	validateCmd.Flags().StringP("reports-dir", "r", "reports", "Reports directory that will contain the summary and detail outputs")
+	validateCmd.Flags().StringP("output-dir", "o", "reports", "Reports output directory that will contain the summary and detail outputs")
 	validateCmd.MarkFlagRequired("schema")
 }
