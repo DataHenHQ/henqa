@@ -73,6 +73,6 @@ func init() {
 	rootCmd.AddCommand(validateCmd)
 	validateCmd.Flags().StringSliceP("schema", "s", nil, "JSON schema file to use if multiple is specified, the latter will override the former")
 	validateCmd.Flags().StringP("output-dir", "o", "reports", "Reports output directory that will contain the summary and detail outputs")
-	validateCmd.Flags().IntP("batch-size", "b", 5000, "Batch size to process records")
+	validateCmd.Flags().IntP("batch-size", "b", 10000, "Batch size to process records")
 	validateCmd.MarkFlagRequired("schema")
 }

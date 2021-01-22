@@ -78,7 +78,7 @@ func Validate(ins []string, schemas []string, outDir string, batchSize int) (err
 		return
 	}
 
-	fmt.Println("\nDone validating record. The report folder would be located at", outDir)
+	fmt.Println("Done validating record. The report folder would be located at", outDir)
 	return nil
 }
 
@@ -262,6 +262,7 @@ func validateWithSchema(files []string, schema []byte, outDir string, batchSize 
 
 		basefile := filepath.Base(f)
 		summaryErrStats[basefile] = errStats
+		fmt.Println("")
 	}
 
 	if err := writeOverallSummaryFile(outDir, summaryErrStats); err != nil {
