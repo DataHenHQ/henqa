@@ -3,7 +3,7 @@ module github.com/DataHenHQ/henqa
 go 1.15
 
 require (
-	github.com/DataHenHQ/datahen v0.0.0-20210113192948-1fc703fb3454
+	github.com/DataHenHQ/datahen v0.0.0-20210122044626-fce3f3d647b9
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/evanphx/json-patch/v5 v5.2.0
 	github.com/google/martian v2.1.0+incompatible // indirect

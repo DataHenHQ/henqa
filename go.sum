@@ -43,6 +43,8 @@ github.com/DataHenHQ/datahen v0.0.0-20210112214603-09a2a705df19 h1:hKNtL7cYRr9tz
 github.com/DataHenHQ/datahen v0.0.0-20210112214603-09a2a705df19/go.mod h1:zxQfHvqbEaICQLI/j4H/KX9uWkZhawmD0SnVWB2nHgY=
 github.com/DataHenHQ/datahen v0.0.0-20210113192948-1fc703fb3454 h1:GzhSNBYgOIZPmw8qOV2TgzAzCNzJPu771vMqXLE3Tb0=
 github.com/DataHenHQ/datahen v0.0.0-20210113192948-1fc703fb3454/go.mod h1:zxQfHvqbEaICQLI/j4H/KX9uWkZhawmD0SnVWB2nHgY=
+github.com/DataHenHQ/datahen v0.0.0-20210122044626-fce3f3d647b9 h1:oNJCBrdM+rsdL3vhPeECEu9ieHT0i5RY+HKFjjB7dkk=
+github.com/DataHenHQ/datahen v0.0.0-20210122044626-fce3f3d647b9/go.mod h1:zxQfHvqbEaICQLI/j4H/KX9uWkZhawmD0SnVWB2nHgY=
 github.com/OneOfOne/xxhash v1.2.2/go.mod h1:HSdplMjZKSmBqAxg5vPj2TmRDmfkzw+cTzAElWljhcU=
 github.com/alecthomas/template v0.0.0-20160405071501-a0175ee3bccc/go.mod h1:LOuyumcjzFXgccqObfd/Ljyb9UuFJ6TxHnclSeseNhc=
 github.com/alecthomas/units v0.0.0-20151022065526-2efee857e7cf/go.mod h1:ybxpYRFXyAe+OPACYpWeL0wqObRcbAqCMya13uyzqw0=
