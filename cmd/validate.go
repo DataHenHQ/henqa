@@ -34,9 +34,10 @@ henqa validate ./dir1 ./dir2 -s schema1.jos -s schema2.json -r myreport
 	Args: cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		var (
-			schemas = []string{}
-			outDir  = ""
-			err     error
+			schemas   = []string{}
+			outDir    = ""
+			batchSize = 0
+			err       error
 		)
 		schemas, err = cmd.Flags().GetStringSlice("schema")
 		if err != nil {
@@ -48,8 +49,17 @@ henqa validate ./dir1 ./dir2 -s schema1.jos -s schema2.json -r myreport
 			fmt.Errorf("Gotten error: %v\n", err.Error())
 			return
 		}
+		batchSize, err = cmd.Flags().GetInt("batch-size")
+		if err != nil {
+			fmt.Errorf("Gotten error: %v\n", err.Error())
+			return
+		}
+		if batchSize < 1 {
+			fmt.Errorf("Gotten error: %v\n", "Batch size must be at least 1")
+			return
+		}
 
-		err = qa.Validate(args, schemas, outDir)
+		err = qa.Validate(args, schemas, outDir, batchSize)
 		if err != nil {
 			fmt.Errorf("Gotten error: %v\n", err.Error())
 			return
@@ -63,5 +73,6 @@ func init() {
 	rootCmd.AddCommand(validateCmd)
 	validateCmd.Flags().StringSliceP("schema", "s", nil, "JSON schema file to use if multiple is specified, the latter will override the former")
 	validateCmd.Flags().StringP("output-dir", "o", "reports", "Reports output directory that will contain the summary and detail outputs")
+	validateCmd.Flags().IntP("batch-size", "b", 5000, "Batch size to process records")
 	validateCmd.MarkFlagRequired("schema")
 }

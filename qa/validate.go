@@ -43,7 +43,7 @@ type RecordsValidationResult struct {
 	Stats       map[string]*records.CollectionStat `json:"stats"`
 }
 
-func Validate(ins []string, schemas []string, outDir string) (err error) {
+func Validate(ins []string, schemas []string, outDir string, batchSize int) (err error) {
 	fmt.Println("validates the data in:", ins, "schemas:", schemas, "outDir:", outDir)
 
 	files := getListOfFiles(ins)
@@ -71,14 +71,14 @@ func Validate(ins []string, schemas []string, outDir string) (err error) {
 		return
 	}
 
-	err = validateWithSchema(files, mergedSchema, outDir)
+	err = validateWithSchema(files, mergedSchema, outDir, batchSize)
 	if err != nil {
 		fmt.Println("gotten error running the validation:", err.Error())
 		fmt.Println("aborting validation.")
 		return
 	}
 
-	fmt.Println("Done validating record. The report folder would be located at", outDir)
+	fmt.Println("\nDone validating record. The report folder would be located at", outDir)
 	return nil
 }
 
@@ -163,7 +163,7 @@ func getAndMergeSchemaFiles(files []string) (schema []byte, err error) {
 	return schema, nil
 }
 
-func validateWithSchema(files []string, schema []byte, outDir string) (err error) {
+func validateWithSchema(files []string, schema []byte, outDir string, batchSize int) (err error) {
 	schemaString := string(schema)
 	schemaSl := gojsonschema.NewStringLoader(schemaString)
 	sl := gojsonschema.NewSchemaLoader()
@@ -179,15 +179,16 @@ func validateWithSchema(files []string, schema []byte, outDir string) (err error
 	colSchemaLoaders["default"] = &loader
 
 	summaryErrStats := map[string]ErrorStats{}
-	batchSize := 100
 	for _, f := range files {
 		var processFile processFileStreamFn = nil
+		includeCollection := false
 
 		switch filepath.Ext(f) {
 		case ".csv":
 			processFile = records.ProcessCSVFile
 		case ".json":
 			processFile = records.ProcessJSONFile
+			includeCollection = true
 		default:
 			fmt.Println(f, "is not a .csv or .json file. Skipping")
 			continue
@@ -210,17 +211,40 @@ func validateWithSchema(files []string, schema []byte, outDir string) (err error
 		errStats := map[string]*ErrorStat{}
 		var recordCount uint64 = 0
 		isFirst := true
-		processFile(f, batchSize, func(recs []records.RecordGetSetterWithError) (err2 error) {
-			colrecs := records.SchemaLoadersValidate(colSchemaLoaders, recs, colstats)
-			recordCount += uint64(len(colrecs["default"]))
-			err2 = writeValidationOutputs(outDir, f, colrecs, errStats, isFirst)
-			if err2 != nil {
-				return err2
+		err = processFile(f, batchSize, func(recs []records.RecordGetSetterWithError) (err2 error) {
+			collection := ""
+			for _, rec := range recs {
+				collection = rec.GetCollection()
+				if collection == "" {
+					continue
+				}
+
+				// ensure schemal loader exits for all collections
+				if _, ok := colSchemaLoaders[collection]; !ok {
+					colSchemaLoaders[collection] = colSchemaLoaders["default"]
+				}
 			}
-			isFirst = false
+
+			// validate collection records
+			colrecs := records.SchemaLoadersValidate(colSchemaLoaders, recs, colstats)
+			for _, recwes := range colrecs {
+				recordCount += uint64(len(recwes))
+				err2 = writeValidationOutputs(outDir, f, recwes, errStats, isFirst, includeCollection)
+				if err2 != nil {
+					return err2
+				}
+				if len(errStats) > 0 {
+					isFirst = false
+				}
+			}
+			fmt.Print(".")
 
 			return nil
 		})
+		if err != nil {
+			fmt.Println("gotten error processing input file ", f, ":", err.Error())
+			return err
+		}
 
 		// close defail file
 		err = closeDetailFile(outDir, f)
@@ -311,7 +335,7 @@ func writeOverallSummaryFile(outDir string, summaryErrStats map[string]ErrorStat
 	return nil
 }
 
-func writeValidationOutputs(outDir string, infilepath string, colrecs map[string][]records.RecordGetSetterWithError, errStats map[string]*ErrorStat, isFirst bool) (err error) {
+func writeValidationOutputs(outDir string, infilepath string, recwes []records.RecordGetSetterWithError, errStats map[string]*ErrorStat, isFirst bool, includeCollection bool) (err error) {
 	if err := createOutDirIfNotExist(outDir); err != nil {
 		return err
 	}
@@ -323,15 +347,15 @@ func writeValidationOutputs(outDir string, infilepath string, colrecs map[string
 		return err
 	}
 
-	recs := colrecs["default"]
-
 	recWs := []RecordWrapper{}
 
-	for _, rec := range recs {
+	for _, rec := range recwes {
 		o := records.TransformToRecordJSONB(rec)
 
 		// delete any unused field from datahen's output records
-		delete(o, "_collection")
+		if !includeCollection {
+			delete(o, "_collection")
+		}
 
 		errs := rec.GetErrors()
 		if errs == nil {
@@ -369,7 +393,11 @@ func writeValidationOutputs(outDir string, infilepath string, colrecs map[string
 	if err != nil {
 		return err
 	}
-	detailsData = detailsData[1 : len(detailsData)-2]
+	upperLimit := 1
+	if len(detailsData) > 2 {
+		upperLimit = len(detailsData) - 2
+	}
+	detailsData = detailsData[1:upperLimit]
 
 	// write details data
 	detailsFile := fmt.Sprintf("%v.json", filepath.Join(detailsDir, infile))
@@ -378,7 +406,7 @@ func writeValidationOutputs(outDir string, infilepath string, colrecs map[string
 		return err
 	}
 	defer f.Close()
-	if !isFirst {
+	if !isFirst && len(recWs) > 0 {
 		// write a comma to join with previous record when not first record set
 		_, err = f.WriteString(",")
 		if err != nil {
