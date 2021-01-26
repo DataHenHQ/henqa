@@ -43,7 +43,7 @@ type RecordsValidationResult struct {
 	Stats       map[string]*records.CollectionStat `json:"stats"`
 }
 
-func Validate(ins []string, schemas []string, outDir string, batchSize int) (err error) {
+func Validate(ins []string, schemas []string, outDir string, summaryFile string, batchSize int) (err error) {
 	fmt.Println("validates the data in:", ins, "schemas:", schemas, "outDir:", outDir)
 
 	files := getListOfFiles(ins)
@@ -71,7 +71,7 @@ func Validate(ins []string, schemas []string, outDir string, batchSize int) (err
 		return
 	}
 
-	err = validateWithSchema(files, mergedSchema, outDir, batchSize)
+	err = validateWithSchema(files, mergedSchema, outDir, summaryFile, batchSize)
 	if err != nil {
 		fmt.Println("gotten error running the validation:", err.Error())
 		fmt.Println("aborting validation.")
@@ -163,7 +163,7 @@ func getAndMergeSchemaFiles(files []string) (schema []byte, err error) {
 	return schema, nil
 }
 
-func validateWithSchema(files []string, schema []byte, outDir string, batchSize int) (err error) {
+func validateWithSchema(files []string, schema []byte, outDir string, summaryFile string, batchSize int) (err error) {
 	schemaString := string(schema)
 	schemaSl := gojsonschema.NewStringLoader(schemaString)
 	sl := gojsonschema.NewSchemaLoader()
@@ -265,7 +265,7 @@ func validateWithSchema(files []string, schema []byte, outDir string, batchSize 
 		fmt.Println("")
 	}
 
-	if err := writeOverallSummaryFile(outDir, summaryErrStats); err != nil {
+	if err := writeOverallSummaryFile(outDir, summaryFile, summaryErrStats); err != nil {
 		return err
 	}
 
@@ -320,7 +320,7 @@ func closeDetailFile(outDir string, infilepath string) (err error) {
 	return nil
 }
 
-func writeOverallSummaryFile(outDir string, summaryErrStats map[string]ErrorStats) (err error) {
+func writeOverallSummaryFile(outDir string, summaryFile string, summaryErrStats map[string]ErrorStats) (err error) {
 	if err := createOutDirIfNotExist(outDir); err != nil {
 		return err
 	}
@@ -330,8 +330,8 @@ func writeOverallSummaryFile(outDir string, summaryErrStats map[string]ErrorStat
 	if err != nil {
 		return err
 	}
-	summaryFile := filepath.Join(outDir, "summary.json")
-	ioutil.WriteFile(summaryFile, summaryData, 0644)
+	summaryFileName := filepath.Join(outDir, fmt.Sprintf("%v.json", summaryFile))
+	ioutil.WriteFile(summaryFileName, summaryData, 0644)
 
 	return nil
 }

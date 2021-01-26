@@ -34,10 +34,11 @@ henqa validate ./dir1 ./dir2 -s schema1.jos -s schema2.json -r myreport
 	Args: cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		var (
-			schemas   = []string{}
-			outDir    = ""
-			batchSize = 0
-			err       error
+			schemas     = []string{}
+			outDir      = ""
+			batchSize   = 0
+			summaryFile = ""
+			err         error
 		)
 		schemas, err = cmd.Flags().GetStringSlice("schema")
 		if err != nil {
@@ -45,6 +46,11 @@ henqa validate ./dir1 ./dir2 -s schema1.jos -s schema2.json -r myreport
 			return
 		}
 		outDir, err = cmd.Flags().GetString("output-dir")
+		if err != nil {
+			fmt.Errorf("Gotten error: %v\n", err.Error())
+			return
+		}
+		summaryFile, err = cmd.Flags().GetString("summary-file")
 		if err != nil {
 			fmt.Errorf("Gotten error: %v\n", err.Error())
 			return
@@ -59,7 +65,7 @@ henqa validate ./dir1 ./dir2 -s schema1.jos -s schema2.json -r myreport
 			return
 		}
 
-		err = qa.Validate(args, schemas, outDir, batchSize)
+		err = qa.Validate(args, schemas, outDir, summaryFile, batchSize)
 		if err != nil {
 			fmt.Errorf("Gotten error: %v\n", err.Error())
 			return
@@ -73,6 +79,7 @@ func init() {
 	rootCmd.AddCommand(validateCmd)
 	validateCmd.Flags().StringSliceP("schema", "s", nil, "JSON schema file to use if multiple is specified, the latter will override the former")
 	validateCmd.Flags().StringP("output-dir", "o", "reports", "Reports output directory that will contain the summary and detail outputs")
+	validateCmd.Flags().StringP("summary-file", "y", "summary", "The name of the summary file that will be saved")
 	validateCmd.Flags().IntP("batch-size", "b", 10000, "Batch size to process records")
 	validateCmd.MarkFlagRequired("schema")
 }
