@@ -37,12 +37,6 @@ dmitri.shuralyov.com/gpu/mtl v0.0.0-20190408044501-666a987793e9/go.mod h1:H6x//7
 github.com/BurntSushi/toml v0.3.1 h1:WXkYYl6Yr3qBf1K79EBnL4mak0OimBfB0XUf9Vl28OQ=
 github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03qcyfWMU=
 github.com/BurntSushi/xgb v0.0.0-20160522181843-27f122750802/go.mod h1:IVnqGOEym/WlBOVXweHU+Q+/VP0lqqI8lqeDx9IjBqo=
-github.com/DataHenHQ/datahen v0.0.0-20210112212346-096339e5867a h1:bX3w1rNWxjdRKAKQrVB+EgksuHO5eURArd/P54m2Os0=
-github.com/DataHenHQ/datahen v0.0.0-20210112212346-096339e5867a/go.mod h1:zxQfHvqbEaICQLI/j4H/KX9uWkZhawmD0SnVWB2nHgY=
-github.com/DataHenHQ/datahen v0.0.0-20210112214603-09a2a705df19 h1:hKNtL7cYRr9tzQzOl75/MLbUnJw4Ye93LfnTfJ+w008=
-github.com/DataHenHQ/datahen v0.0.0-20210112214603-09a2a705df19/go.mod h1:zxQfHvqbEaICQLI/j4H/KX9uWkZhawmD0SnVWB2nHgY=
-github.com/DataHenHQ/datahen v0.0.0-20210113192948-1fc703fb3454 h1:GzhSNBYgOIZPmw8qOV2TgzAzCNzJPu771vMqXLE3Tb0=
-github.com/DataHenHQ/datahen v0.0.0-20210113192948-1fc703fb3454/go.mod h1:zxQfHvqbEaICQLI/j4H/KX9uWkZhawmD0SnVWB2nHgY=
 github.com/DataHenHQ/datahen v0.0.0-20210122044626-fce3f3d647b9 h1:oNJCBrdM+rsdL3vhPeECEu9ieHT0i5RY+HKFjjB7dkk=
 github.com/DataHenHQ/datahen v0.0.0-20210122044626-fce3f3d647b9/go.mod h1:zxQfHvqbEaICQLI/j4H/KX9uWkZhawmD0SnVWB2nHgY=
 github.com/OneOfOne/xxhash v1.2.2/go.mod h1:HSdplMjZKSmBqAxg5vPj2TmRDmfkzw+cTzAElWljhcU=
@@ -77,7 +71,6 @@ github.com/envoyproxy/go-control-plane v0.9.0/go.mod h1:YTl/9mNaCwkRvm6d1a2C3ymF
 github.com/envoyproxy/go-control-plane v0.9.1-0.20191026205805-5f8ba28d4473/go.mod h1:YTl/9mNaCwkRvm6d1a2C3ymFceY/DCBVvsKhRF0iEA4=
 github.com/envoyproxy/go-control-plane v0.9.4/go.mod h1:6rpuAdCZL397s3pYoYcLgu1mIlRU8Am5FuJP05cCM98=
 github.com/envoyproxy/protoc-gen-validate v0.1.0/go.mod h1:iSmxcyjqTsJpI2R4NaDN7+kN2VEUnK/pcBlmesArF7c=
-github.com/evanphx/json-patch v0.5.2 h1:xVCHIVMUu1wtM/VkR9jVZ45N3FhZfYMMYGorLCR8P3k=
 github.com/evanphx/json-patch/v5 v5.2.0 h1:8ozOH5xxoMYDt5/u+yMTsVXydVCbTORFnOOoq2lumco=
 github.com/evanphx/json-patch/v5 v5.2.0/go.mod h1:G79N1coSVB93tBe7j6PhzjmR3/2VvlbKOFpnXhI9Bw4=
 github.com/fatih/color v1.7.0/go.mod h1:Zm6kSWBoL9eyXnKyktHP6abPY2pDugNf5KwzbycvMj4=
@@ -278,6 +271,7 @@ github.com/stretchr/objx v0.1.1/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+
 github.com/stretchr/testify v1.2.2/go.mod h1:a8OnRcib4nhh0OaRAV+Yts87kKdq0PP7pXfy6kDkUVs=
 github.com/stretchr/testify v1.3.0 h1:TivCn/peBQ7UY8ooIcPgZFpTNSz0Q2U6UrFlUfqbe0Q=
 github.com/stretchr/testify v1.3.0/go.mod h1:M5WIy9Dh21IEIfnGCwXGc5bZfKNJtfHm1UVUgZn+9EI=
+github.com/stretchr/testify v1.4.0 h1:2E4SXV/wtOkTonXsotYi4li6zVWxYlZuYNCXe9XRJyk=
 github.com/stretchr/testify v1.4.0/go.mod h1:j7eGeouHqKxXV5pUuKE4zz7dFj8WfuZ+81PSLYec5m4=
 github.com/subosito/gotenv v1.2.0 h1:Slr1R9HxAlEKefgq5jn9U+DnETlIUa6HfgEzj0g5d7s=
 github.com/subosito/gotenv v1.2.0/go.mod h1:N0PQaV/YGNqwC0u51sEeR/aUtSLEXKX9iv69rRypqCw=

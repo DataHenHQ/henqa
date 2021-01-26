@@ -1,4 +1,4 @@
-// Copyright © 2021 NAME HERE <EMAIL ADDRESS>
+// Copyright © 2021 DataHen Canada Inc
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -36,6 +36,7 @@ henqa validate ./dir1 ./dir2 -s schema1.jos -s schema2.json -r myreport
 		var (
 			schemas     = []string{}
 			outDir      = ""
+			maxErrors   = -1
 			batchSize   = 0
 			summaryFile = ""
 			err         error
@@ -65,7 +66,13 @@ henqa validate ./dir1 ./dir2 -s schema1.jos -s schema2.json -r myreport
 			return
 		}
 
-		err = qa.Validate(args, schemas, outDir, summaryFile, batchSize)
+		maxErrors, err = cmd.Flags().GetInt("max")
+		if err != nil {
+			fmt.Errorf("Gotten error: %v\n", err.Error())
+			return
+		}
+
+		err = qa.Validate(args, schemas, outDir, summaryFile, batchSize, maxErrors)
 		if err != nil {
 			fmt.Errorf("Gotten error: %v\n", err.Error())
 			return
@@ -81,5 +88,6 @@ func init() {
 	validateCmd.Flags().StringP("output-dir", "o", "reports", "Reports output directory that will contain the summary and detail outputs")
 	validateCmd.Flags().StringP("summary-file", "y", "summary", "The name of the summary file that will be saved")
 	validateCmd.Flags().IntP("batch-size", "b", 10000, "Batch size to process records")
+	validateCmd.Flags().IntP("max", "m", -1, "Limit the max number of errors being saved into the detail file. This is meant to make the file smaller. -1 means no limit.")
 	validateCmd.MarkFlagRequired("schema")
 }

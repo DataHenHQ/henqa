@@ -12,7 +12,7 @@ import (
 	"github.com/xeipuuv/gojsonschema"
 )
 
-type processFileStreamFn func(string, int, records.ValidateFn) error
+type processFileStreamFn func(filename string, batchSize int, validateFn records.ValidateFn) error
 
 type RecordWrapper struct {
 	Errors []records.SchemaError `json:"errors"`
@@ -43,9 +43,8 @@ type RecordsValidationResult struct {
 	Stats       map[string]*records.CollectionStat `json:"stats"`
 }
 
-func Validate(ins []string, schemas []string, outDir string, summaryFile string, batchSize int) (err error) {
+func Validate(ins []string, schemas []string, outDir string, summaryFile string, batchSize int, maxRecsWithErrors int) (err error) {
 	fmt.Println("validates the data in:", ins, "schemas:", schemas, "outDir:", outDir)
-
 	files := getListOfFiles(ins)
 	// if len(files) > 0 {
 	// 	fmt.Println("input files are:")
@@ -71,7 +70,7 @@ func Validate(ins []string, schemas []string, outDir string, summaryFile string,
 		return
 	}
 
-	err = validateWithSchema(files, mergedSchema, outDir, summaryFile, batchSize)
+	err = validateWithSchema(files, mergedSchema, outDir, summaryFile, batchSize, maxRecsWithErrors)
 	if err != nil {
 		fmt.Println("gotten error running the validation:", err.Error())
 		fmt.Println("aborting validation.")
@@ -163,7 +162,7 @@ func getAndMergeSchemaFiles(files []string) (schema []byte, err error) {
 	return schema, nil
 }
 
-func validateWithSchema(files []string, schema []byte, outDir string, summaryFile string, batchSize int) (err error) {
+func validateWithSchema(files []string, schema []byte, outDir string, summaryFile string, batchSize int, maxRecsWithErrors int) (err error) {
 	schemaString := string(schema)
 	schemaSl := gojsonschema.NewStringLoader(schemaString)
 	sl := gojsonschema.NewSchemaLoader()
@@ -213,6 +212,8 @@ func validateWithSchema(files []string, schema []byte, outDir string, summaryFil
 		isFirst := true
 		err = processFile(f, batchSize, func(recs []records.RecordGetSetterWithError) (err2 error) {
 			collection := ""
+			var totalRecWithErrors = 0
+
 			for _, rec := range recs {
 				collection = rec.GetCollection()
 				if collection == "" {
@@ -229,7 +230,7 @@ func validateWithSchema(files []string, schema []byte, outDir string, summaryFil
 			colrecs := records.SchemaLoadersValidate(colSchemaLoaders, recs, colstats)
 			for _, recwes := range colrecs {
 				recordCount += uint64(len(recwes))
-				err2 = writeValidationOutputs(outDir, f, recwes, errStats, isFirst, includeCollection)
+				err2 = writeValidationOutputs(outDir, f, recwes, errStats, isFirst, includeCollection, &totalRecWithErrors, maxRecsWithErrors)
 				if err2 != nil {
 					return err2
 				}
@@ -336,7 +337,7 @@ func writeOverallSummaryFile(outDir string, summaryFile string, summaryErrStats 
 	return nil
 }
 
-func writeValidationOutputs(outDir string, infilepath string, recwes []records.RecordGetSetterWithError, errStats map[string]*ErrorStat, isFirst bool, includeCollection bool) (err error) {
+func writeValidationOutputs(outDir string, infilepath string, recwes []records.RecordGetSetterWithError, errStats map[string]*ErrorStat, isFirst bool, includeCollection bool, totalRecWithErrors *int, maxRecsWithErrors int) (err error) {
 	if err := createOutDirIfNotExist(outDir); err != nil {
 		return err
 	}
@@ -363,6 +364,9 @@ func writeValidationOutputs(outDir string, infilepath string, recwes []records.R
 			continue
 		}
 
+		// Increment the overal total errors
+		*totalRecWithErrors++
+
 		for _, e := range errs {
 			errKey := fmt.Sprintf("%v.%v", e.Field, e.ErrorType)
 
@@ -383,10 +387,14 @@ func writeValidationOutputs(outDir string, infilepath string, recwes []records.R
 			errStats[errKey].IncErrCount()
 		}
 
-		recWs = append(recWs, RecordWrapper{
-			Errors: errs,
-			Record: o,
-		})
+		// if max records with errors is specified, then limit the output
+		if maxRecsWithErrors == -1 || (maxRecsWithErrors > -1 && *totalRecWithErrors <= maxRecsWithErrors) {
+			recWs = append(recWs, RecordWrapper{
+				Errors: errs,
+				Record: o,
+			})
+		}
+
 	}
 
 	// prepare details data to save and remove array wrappers
