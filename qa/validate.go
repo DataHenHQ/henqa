@@ -7,6 +7,8 @@ import (
 	"os"
 	"path/filepath"
 
+	yaml "github.com/ghodss/yaml"
+
 	"github.com/DataHenHQ/datahen/records"
 	jsonpatch "github.com/evanphx/json-patch/v5"
 	"github.com/xeipuuv/gojsonschema"
@@ -145,6 +147,18 @@ func getAndMergeSchemaFiles(files []string) (schema []byte, err error) {
 			return nil, err
 		}
 
+		// convert yaml to json if not already
+		switch filepath.Ext(f) {
+		case ".yaml", ".yml":
+			nj, err := yaml.YAMLToJSON(nschema)
+			if err != nil {
+				fmt.Printf("error converting YAML to JSON: %v\n", err)
+				continue
+			}
+			nschema = nj
+		}
+
+		// if the first schema, then simply assign it
 		if schema == nil {
 			schema = nschema
 			continue
