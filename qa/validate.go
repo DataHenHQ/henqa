@@ -2,6 +2,7 @@ package qa
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -177,6 +178,7 @@ func getAndMergeSchemaFiles(files []string) (schema []byte, err error) {
 }
 
 func validateWithSchema(files []string, schema []byte, outDir string, summaryFile string, batchSize int, maxRecsWithErrors int) (err error) {
+	// load schema
 	schemaString := string(schema)
 	schemaSl := gojsonschema.NewStringLoader(schemaString)
 	sl := gojsonschema.NewSchemaLoader()
@@ -191,100 +193,133 @@ func validateWithSchema(files []string, schema []byte, outDir string, summaryFil
 	colSchemaLoaders := make(map[string]*gojsonschema.JSONLoader)
 	colSchemaLoaders["default"] = &loader
 
+	// loop each file to validate
 	summaryErrStats := map[string]ErrorStats{}
 	for _, f := range files {
-		var processFile processFileStreamFn = nil
-		includeCollection := false
-
-		switch filepath.Ext(f) {
-		case ".csv":
-			processFile = records.ProcessCSVFile
-		case ".json":
-			processFile = records.ProcessJSONFile
-			includeCollection = true
-		default:
-			fmt.Println(f, "is not a .csv or .json file. Skipping")
-			continue
-		}
+		// validate file
+		shouldContinue, err := validateSingleFile(f, colSchemaLoaders, summaryErrStats, batchSize, outDir, maxRecsWithErrors)
 		if err != nil {
-			fmt.Println("gotten error reading ", f, ":", err.Error())
-			continue
-		}
-		fmt.Println("validating:", f)
-
-		// init detail file
-		err = initDetailFile(outDir, f)
-		if err != nil {
-			fmt.Println("gotten error initializing output files for ", f, ":", err.Error())
-			return err
-		}
-
-		// process the files and keep stats
-		colstats := make(map[string]*records.CollectionStat)
-		errStats := map[string]*ErrorStat{}
-		var recordCount uint64 = 0
-		isFirst := true
-		err = processFile(f, batchSize, func(recs []records.RecordGetSetterWithError) (err2 error) {
-			collection := ""
-			var totalRecWithErrors = 0
-
-			for _, rec := range recs {
-				collection = rec.GetCollection()
-				if collection == "" {
-					continue
-				}
-
-				// ensure schemal loader exits for all collections
-				if _, ok := colSchemaLoaders[collection]; !ok {
-					colSchemaLoaders[collection] = colSchemaLoaders["default"]
-				}
+			if shouldContinue {
+				continue
 			}
-
-			// validate collection records
-			colrecs := records.SchemaLoadersValidate(colSchemaLoaders, recs, colstats)
-			for _, recwes := range colrecs {
-				recordCount += uint64(len(recwes))
-				err2 = writeValidationOutputs(outDir, f, recwes, errStats, isFirst, includeCollection, &totalRecWithErrors, maxRecsWithErrors)
-				if err2 != nil {
-					return err2
-				}
-				if len(errStats) > 0 {
-					isFirst = false
-				}
-			}
-			fmt.Print(".")
-
-			return nil
-		})
-		if err != nil {
-			fmt.Println("gotten error processing input file ", f, ":", err.Error())
 			return err
 		}
-
-		// close defail file
-		err = closeDetailFile(outDir, f)
-		if err != nil {
-			fmt.Println("gotten error initializing output files for ", f, ":", err.Error())
-			return err
-		}
-
-		// fix errStats record counters and write summary
-		for _, es := range errStats {
-			es.RecordCount = recordCount
-			es.CalculatePercentage()
-		}
-		writeSummaryOutputs(outDir, f, errStats)
-
-		basefile := filepath.Base(f)
-		summaryErrStats[basefile] = errStats
-		fmt.Println("")
 	}
 
+	// write overrall summary
 	if err := writeOverallSummaryFile(outDir, summaryFile, summaryErrStats); err != nil {
 		return err
 	}
 
 	return nil
+}
+
+func validateSingleFile(f string, colSchemaLoaders map[string]*gojsonschema.JSONLoader, summaryErrStats map[string]ErrorStats, batchSize int, outDir string, maxRecsWithErrors int) (shouldContinue bool, err error) {
+	// analyze file extension
+	processFile, includeCollection, err := analyzeFileExtension(f)
+	if err != nil {
+		return true, err
+	}
+
+	// init detail file
+	err = initDetailFile(outDir, f)
+	if err != nil {
+		fmt.Println("gotten error initializing output files for ", f, ":", err.Error())
+		return false, err
+	}
+
+	// process the files and keep stats
+	errStats := map[string]*ErrorStat{}
+	var recordCount uint64 = 0
+	vbf := validateBatchFn(f, colSchemaLoaders, outDir, includeCollection, &recordCount, errStats, maxRecsWithErrors)
+	err = processFile(f, batchSize, vbf)
+	if err != nil {
+		fmt.Println("gotten error processing input file ", f, ":", err.Error())
+		return false, err
+	}
+
+	// close detail file
+	err = closeDetailFile(outDir, f)
+	if err != nil {
+		fmt.Println("gotten error initializing output files for ", f, ":", err.Error())
+		return false, err
+	}
+
+	// fix errStats record counters and write summary
+	for _, es := range errStats {
+		es.RecordCount = recordCount
+		es.CalculatePercentage()
+	}
+	writeSummaryOutputs(outDir, f, errStats)
+
+	// map errors to summary stats file
+	basefile := filepath.Base(f)
+	summaryErrStats[basefile] = errStats
+	fmt.Println("")
+	return false, nil
+}
+
+func validateBatchFn(f string, colSchemaLoaders map[string]*gojsonschema.JSONLoader, outDir string, includeCollection bool, recordCount *uint64, errStats map[string]*ErrorStat, maxRecsWithErrors int) records.ValidateFn {
+	colstats := make(map[string]*records.CollectionStat)
+	isFirst := true
+	return func(recs []records.RecordGetSetterWithError) (err2 error) {
+		collection := ""
+		var totalRecWithErrors = 0
+
+		// loop records and assign schema
+		for _, rec := range recs {
+			// skip when collection is empty
+			collection = rec.GetCollection()
+			if collection == "" {
+				continue
+			}
+
+			// ensure schemal loader exits for all collections
+			if _, ok := colSchemaLoaders[collection]; !ok {
+				colSchemaLoaders[collection] = colSchemaLoaders["default"]
+			}
+		}
+
+		// validate collection records
+		colrecs := records.SchemaLoadersValidate(colSchemaLoaders, recs, colstats)
+
+		// loop collection records and write validation outputs
+		for _, recwes := range colrecs {
+			// write validation outputs
+			*recordCount += uint64(len(recwes))
+			err2 = writeValidationOutputs(outDir, f, recwes, errStats, isFirst, includeCollection, &totalRecWithErrors, maxRecsWithErrors)
+			if err2 != nil {
+				return err2
+			}
+			if len(errStats) > 0 {
+				isFirst = false
+			}
+		}
+		fmt.Print(".")
+
+		return nil
+	}
+}
+
+func analyzeFileExtension(f string) (processFile processFileStreamFn, includeCollection bool, err error) {
+	switch filepath.Ext(f) {
+	case ".csv":
+		processFile = records.ProcessCSVFile
+	case ".json":
+		processFile = records.ProcessJSONFile
+		includeCollection = true
+	default:
+		msg := fmt.Sprintf("%s is not a .csv or .json file. Skipping", f)
+		fmt.Println(msg)
+		return nil, false, errors.New(msg)
+	}
+	if err != nil {
+		fmt.Println("gotten error reading ", f, ":", err.Error())
+		return nil, false, err
+	}
+	fmt.Println("validating:", f)
+
+	return processFile, includeCollection, nil
 }
 
 func createOutDirIfNotExist(path string) (err error) {

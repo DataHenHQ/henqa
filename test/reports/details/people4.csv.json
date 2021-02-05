@@ -1,16 +1,16 @@
 [
- {
-  "errors": [
-   {
-    "field": "lastName",
-    "error_type": "invalid_type",
-    "description": "Invalid type. Expected: integer, given: string",
-    "value": "Hill"
-   }
-  ],
-  "record": {
-   "firstName": "Faith",
-   "lastName": "Hill"
+  {
+    "errors": [
+      {
+        "field": "lastName",
+        "error_type": "invalid_type",
+        "description": "Invalid type. Expected: integer, given: string",
+        "value": "Hill"
+      }
+    ],
+    "record": {
+      "firstName": "Faith",
+      "lastName": "Hill"
+    }
   }
- }
 ]

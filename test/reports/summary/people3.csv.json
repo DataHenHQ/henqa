@@ -1,18 +1,18 @@
 {
- "age.invalid_type": {
-  "field": "age",
-  "error_type": "invalid_type",
-  "error_description": "Invalid type. Expected: integer, given: string",
-  "error_count": 4,
-  "record_count": 4,
-  "error_percent": 100
- },
- "lastName.invalid_type": {
-  "field": "lastName",
-  "error_type": "invalid_type",
-  "error_description": "Invalid type. Expected: integer, given: string",
-  "error_count": 4,
-  "record_count": 4,
-  "error_percent": 100
- }
+  "age.invalid_type": {
+    "field": "age",
+    "error_type": "invalid_type",
+    "error_description": "Invalid type. Expected: integer, given: string",
+    "error_count": 4,
+    "record_count": 4,
+    "error_percent": 100
+  },
+  "lastName.invalid_type": {
+    "field": "lastName",
+    "error_type": "invalid_type",
+    "error_description": "Invalid type. Expected: integer, given: string",
+    "error_count": 4,
+    "record_count": 4,
+    "error_percent": 100
+  }
 }

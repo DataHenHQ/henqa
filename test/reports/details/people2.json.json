@@ -1,16 +1,17 @@
 [
- {
-  "errors": [
-   {
-    "field": "lastName",
-    "error_type": "invalid_type",
-    "description": "Invalid type. Expected: integer, given: string",
-    "value": "Seller"
-   }
-  ],
-  "record": {
-   "firstName": "Sally",
-   "lastName": "Seller"
+  {
+    "errors": [
+      {
+        "field": "lastName",
+        "error_type": "invalid_type",
+        "description": "Invalid type. Expected: integer, given: string",
+        "value": "Seller"
+      }
+    ],
+    "record": {
+      "_collection": "default",
+      "firstName": "Sally",
+      "lastName": "Seller"
+    }
   }
- }
 ]
