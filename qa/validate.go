@@ -11,6 +11,8 @@ import (
 	yaml "github.com/ghodss/yaml"
 
 	"github.com/DataHenHQ/datahen/records"
+	"github.com/DataHenHQ/henqa/customtypes"
+	workflows "github.com/DataHenHQ/henqa_workflows"
 	jsonpatch "github.com/evanphx/json-patch/v5"
 	"github.com/xeipuuv/gojsonschema"
 )
@@ -22,31 +24,12 @@ type RecordWrapper struct {
 	Record interface{}           `json:"record"`
 }
 
-type ErrorStat struct {
-	Field            string  `json:"field"`
-	ErrorType        string  `json:"error_type"`
-	ErrorDescription string  `json:"error_description"`
-	ErrorCount       uint64  `json:"error_count"`
-	RecordCount      uint64  `json:"record_count"`
-	ErrorPercent     float64 `json:"error_percent"`
-}
-
-type ErrorStats map[string]*ErrorStat
-
-func (e *ErrorStat) IncErrCount() {
-	e.ErrorCount = e.ErrorCount + 1
-}
-
-func (e *ErrorStat) CalculatePercentage() {
-	e.ErrorPercent = float64(e.ErrorCount) / float64(e.RecordCount) * 100.0
-}
-
 type RecordsValidationResult struct {
 	Collections map[string][]RecordWrapper         `json:"collections"`
 	Stats       map[string]*records.CollectionStat `json:"stats"`
 }
 
-func Validate(ins []string, schemas []string, outDir string, summaryFile string, batchSize int, maxRecsWithErrors int) (err error) {
+func Validate(ins []string, schemas []string, wfname string, outDir string, summaryFile string, batchSize int, maxRecsWithErrors int) (err error) {
 	fmt.Println("validates the data in:", ins, "schemas:", schemas, "outDir:", outDir)
 	files := getListOfFiles(ins)
 	// if len(files) > 0 {
@@ -73,7 +56,7 @@ func Validate(ins []string, schemas []string, outDir string, summaryFile string,
 		return
 	}
 
-	err = validateWithSchema(files, mergedSchema, outDir, summaryFile, batchSize, maxRecsWithErrors)
+	err = validateWithSchema(files, mergedSchema, wfname, outDir, summaryFile, batchSize, maxRecsWithErrors)
 	if err != nil {
 		fmt.Println("gotten error running the validation:", err.Error())
 		fmt.Println("aborting validation.")
@@ -177,7 +160,7 @@ func getAndMergeSchemaFiles(files []string) (schema []byte, err error) {
 	return schema, nil
 }
 
-func validateWithSchema(files []string, schema []byte, outDir string, summaryFile string, batchSize int, maxRecsWithErrors int) (err error) {
+func validateWithSchema(files []string, schema []byte, wfname string, outDir string, summaryFile string, batchSize int, maxRecsWithErrors int) (err error) {
 	// load schema
 	schemaString := string(schema)
 	schemaSl := gojsonschema.NewStringLoader(schemaString)
@@ -193,11 +176,17 @@ func validateWithSchema(files []string, schema []byte, outDir string, summaryFil
 	colSchemaLoaders := make(map[string]*gojsonschema.JSONLoader)
 	colSchemaLoaders["default"] = &loader
 
+	// load workflow
+	wf, err := workflows.GetWorkflow(wfname)
+	if err != nil {
+		return err
+	}
+
 	// loop each file to validate
-	summaryErrStats := map[string]ErrorStats{}
+	summaryErrStats := map[string]customtypes.ErrorStats{}
 	for _, f := range files {
 		// validate file
-		shouldContinue, err := validateSingleFile(f, colSchemaLoaders, summaryErrStats, batchSize, outDir, maxRecsWithErrors)
+		shouldContinue, err := validateSingleFile(f, colSchemaLoaders, wf, summaryErrStats, batchSize, outDir, maxRecsWithErrors)
 		if err != nil {
 			if shouldContinue {
 				continue
@@ -214,7 +203,7 @@ func validateWithSchema(files []string, schema []byte, outDir string, summaryFil
 	return nil
 }
 
-func validateSingleFile(f string, colSchemaLoaders map[string]*gojsonschema.JSONLoader, summaryErrStats map[string]ErrorStats, batchSize int, outDir string, maxRecsWithErrors int) (shouldContinue bool, err error) {
+func validateSingleFile(f string, colSchemaLoaders map[string]*gojsonschema.JSONLoader, wf *workflows.Workflow, summaryErrStats map[string]customtypes.ErrorStats, batchSize int, outDir string, maxRecsWithErrors int) (shouldContinue bool, err error) {
 	// analyze file extension
 	processFile, includeCollection, err := analyzeFileExtension(f)
 	if err != nil {
@@ -229,9 +218,10 @@ func validateSingleFile(f string, colSchemaLoaders map[string]*gojsonschema.JSON
 	}
 
 	// process the files and keep stats
-	errStats := map[string]*ErrorStat{}
+	errStats := map[string]*customtypes.ErrorStat{}
 	var recordCount uint64 = 0
-	vbf := validateBatchFn(f, colSchemaLoaders, outDir, includeCollection, &recordCount, errStats, maxRecsWithErrors)
+	gvars := make(map[string]interface{})
+	vbf := validateBatchFn(f, colSchemaLoaders, wf, gvars, outDir, includeCollection, &recordCount, errStats, maxRecsWithErrors)
 	err = processFile(f, batchSize, vbf)
 	if err != nil {
 		fmt.Println("gotten error processing input file ", f, ":", err.Error())
@@ -243,6 +233,14 @@ func validateSingleFile(f string, colSchemaLoaders map[string]*gojsonschema.JSON
 	if err != nil {
 		fmt.Println("gotten error initializing output files for ", f, ":", err.Error())
 		return false, err
+	}
+
+	// execute workflow for summary
+	if wf != nil {
+		err := wf.ExecSummary(gvars, errStats)
+		if err != nil {
+			return false, err
+		}
 	}
 
 	// fix errStats record counters and write summary
@@ -259,7 +257,7 @@ func validateSingleFile(f string, colSchemaLoaders map[string]*gojsonschema.JSON
 	return false, nil
 }
 
-func validateBatchFn(f string, colSchemaLoaders map[string]*gojsonschema.JSONLoader, outDir string, includeCollection bool, recordCount *uint64, errStats map[string]*ErrorStat, maxRecsWithErrors int) records.ValidateFn {
+func validateBatchFn(f string, colSchemaLoaders map[string]*gojsonschema.JSONLoader, wf *workflows.Workflow, gvars map[string]interface{}, outDir string, includeCollection bool, recordCount *uint64, errStats map[string]*customtypes.ErrorStat, maxRecsWithErrors int) records.ValidateFn {
 	colstats := make(map[string]*records.CollectionStat)
 	isFirst := true
 	return func(recs []records.RecordGetSetterWithError) (err2 error) {
@@ -285,6 +283,16 @@ func validateBatchFn(f string, colSchemaLoaders map[string]*gojsonschema.JSONLoa
 
 		// loop collection records and write validation outputs
 		for _, recwes := range colrecs {
+			// execute workflow for this record
+			if wf != nil {
+				for _, recwe := range recwes {
+					err2 = wf.ExecRecord(recwe, gvars)
+					if err2 != nil {
+						return err2
+					}
+				}
+			}
+
 			// write validation outputs
 			*recordCount += uint64(len(recwes))
 			err2 = writeValidationOutputs(outDir, f, recwes, errStats, isFirst, includeCollection, &totalRecWithErrors, maxRecsWithErrors)
@@ -370,7 +378,7 @@ func closeDetailFile(outDir string, infilepath string) (err error) {
 	return nil
 }
 
-func writeOverallSummaryFile(outDir string, summaryFile string, summaryErrStats map[string]ErrorStats) (err error) {
+func writeOverallSummaryFile(outDir string, summaryFile string, summaryErrStats map[string]customtypes.ErrorStats) (err error) {
 	if err := createOutDirIfNotExist(outDir); err != nil {
 		return err
 	}
@@ -386,7 +394,7 @@ func writeOverallSummaryFile(outDir string, summaryFile string, summaryErrStats 
 	return nil
 }
 
-func writeValidationOutputs(outDir string, infilepath string, recwes []records.RecordGetSetterWithError, errStats map[string]*ErrorStat, isFirst bool, includeCollection bool, totalRecWithErrors *int, maxRecsWithErrors int) (err error) {
+func writeValidationOutputs(outDir string, infilepath string, recwes []records.RecordGetSetterWithError, errStats map[string]*customtypes.ErrorStat, isFirst bool, includeCollection bool, totalRecWithErrors *int, maxRecsWithErrors int) (err error) {
 	if err := createOutDirIfNotExist(outDir); err != nil {
 		return err
 	}
@@ -421,7 +429,7 @@ func writeValidationOutputs(outDir string, infilepath string, recwes []records.R
 
 			// if it doesn't exist then set a new record
 			if errStats[errKey] == nil {
-				es := ErrorStat{
+				es := customtypes.ErrorStat{
 					Field:            e.Field,
 					ErrorType:        e.ErrorType,
 					ErrorDescription: e.Description,
@@ -479,7 +487,7 @@ func writeValidationOutputs(outDir string, infilepath string, recwes []records.R
 	return nil
 }
 
-func writeSummaryOutputs(outDir string, infilepath string, errStats map[string]*ErrorStat) (err error) {
+func writeSummaryOutputs(outDir string, infilepath string, errStats map[string]*customtypes.ErrorStat) (err error) {
 	if err := createOutDirIfNotExist(outDir); err != nil {
 		return err
 	}

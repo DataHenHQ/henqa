@@ -12,6 +12,18 @@
         "error_type": "invalid_type",
         "description": "Invalid type. Expected: integer, given: string",
         "value": "4"
+      },
+      {
+        "field": "firstName",
+        "error_type": "customErrorFoo",
+        "description": "I just wanted it to error out :)",
+        "value": "Kenneth"
+      },
+      {
+        "field": "firstName",
+        "error_type": "customErrorFoo2",
+        "description": "I just wanted it to error out again :D",
+        "value": "Kenneth"
       }
     ],
     "record": {
@@ -33,6 +45,18 @@
         "error_type": "invalid_type",
         "description": "Invalid type. Expected: integer, given: string",
         "value": "31"
+      },
+      {
+        "field": "firstName",
+        "error_type": "customErrorFoo",
+        "description": "I just wanted it to error out :)",
+        "value": "Mary"
+      },
+      {
+        "field": "firstName",
+        "error_type": "customErrorFoo2",
+        "description": "I just wanted it to error out again :D",
+        "value": "Mary"
       }
     ],
     "record": {
@@ -54,6 +78,18 @@
         "error_type": "invalid_type",
         "description": "Invalid type. Expected: integer, given: string",
         "value": "42"
+      },
+      {
+        "field": "firstName",
+        "error_type": "customErrorFoo",
+        "description": "I just wanted it to error out :)",
+        "value": "Winston"
+      },
+      {
+        "field": "firstName",
+        "error_type": "customErrorFoo2",
+        "description": "I just wanted it to error out again :D",
+        "value": "Winston"
       }
     ],
     "record": {
@@ -75,6 +111,18 @@
         "error_type": "invalid_type",
         "description": "Invalid type. Expected: integer, given: string",
         "value": "8"
+      },
+      {
+        "field": "firstName",
+        "error_type": "customErrorFoo",
+        "description": "I just wanted it to error out :)",
+        "value": "Bart"
+      },
+      {
+        "field": "firstName",
+        "error_type": "customErrorFoo2",
+        "description": "I just wanted it to error out again :D",
+        "value": "Bart"
       }
     ],
     "record": {

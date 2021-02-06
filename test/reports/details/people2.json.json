@@ -6,6 +6,18 @@
         "error_type": "invalid_type",
         "description": "Invalid type. Expected: integer, given: string",
         "value": "Seller"
+      },
+      {
+        "field": "firstName",
+        "error_type": "customErrorFoo",
+        "description": "I just wanted it to error out :)",
+        "value": "Sally"
+      },
+      {
+        "field": "firstName",
+        "error_type": "customErrorFoo2",
+        "description": "I just wanted it to error out again :D",
+        "value": "Sally"
       }
     ],
     "record": {

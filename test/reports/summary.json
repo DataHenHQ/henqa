@@ -8,30 +8,18 @@
       "record_count": 4,
       "error_percent": 75
     },
-    "lastName.invalid_type": {
-      "field": "lastName",
-      "error_type": "invalid_type",
-      "error_description": "Invalid type. Expected: integer, given: string",
+    "firstName.customErrorFoo": {
+      "field": "firstName",
+      "error_type": "customErrorFoo",
+      "error_description": "I just wanted it to error out :)",
       "error_count": 4,
       "record_count": 4,
       "error_percent": 100
-    }
-  },
-  "people2.json": {
-    "lastName.invalid_type": {
-      "field": "lastName",
-      "error_type": "invalid_type",
-      "error_description": "Invalid type. Expected: integer, given: string",
-      "error_count": 1,
-      "record_count": 1,
-      "error_percent": 100
-    }
-  },
-  "people3.csv": {
-    "age.invalid_type": {
-      "field": "age",
-      "error_type": "invalid_type",
-      "error_description": "Invalid type. Expected: integer, given: string",
+    },
+    "firstName.customErrorFoo2": {
+      "field": "firstName",
+      "error_type": "customErrorFoo2",
+      "error_description": "I just wanted it to error out again :D",
       "error_count": 4,
       "record_count": 4,
       "error_percent": 100
@@ -43,9 +31,41 @@
       "error_count": 4,
       "record_count": 4,
       "error_percent": 100
+    },
+    "my_custom_error": {
+      "field": "whole file?",
+      "error_type": "custom_error_apparently",
+      "error_description": "just a summary error",
+      "error_count": 1000,
+      "record_count": 4,
+      "error_percent": 25000
+    },
+    "my_custom_error_counter": {
+      "field": "whole file? yes",
+      "error_type": "custom_error_apparently_of_course",
+      "error_description": "just a summary error fromt he counter",
+      "error_count": 20,
+      "record_count": 4,
+      "error_percent": 500
     }
   },
-  "people4.csv": {
+  "people2.json": {
+    "firstName.customErrorFoo": {
+      "field": "firstName",
+      "error_type": "customErrorFoo",
+      "error_description": "I just wanted it to error out :)",
+      "error_count": 1,
+      "record_count": 1,
+      "error_percent": 100
+    },
+    "firstName.customErrorFoo2": {
+      "field": "firstName",
+      "error_type": "customErrorFoo2",
+      "error_description": "I just wanted it to error out again :D",
+      "error_count": 1,
+      "record_count": 1,
+      "error_percent": 100
+    },
     "lastName.invalid_type": {
       "field": "lastName",
       "error_type": "invalid_type",
@@ -53,6 +73,114 @@
       "error_count": 1,
       "record_count": 1,
       "error_percent": 100
+    },
+    "my_custom_error": {
+      "field": "whole file?",
+      "error_type": "custom_error_apparently",
+      "error_description": "just a summary error",
+      "error_count": 1000,
+      "record_count": 1,
+      "error_percent": 100000
+    },
+    "my_custom_error_counter": {
+      "field": "whole file? yes",
+      "error_type": "custom_error_apparently_of_course",
+      "error_description": "just a summary error fromt he counter",
+      "error_count": 5,
+      "record_count": 1,
+      "error_percent": 500
+    }
+  },
+  "people3.csv": {
+    "age.invalid_type": {
+      "field": "age",
+      "error_type": "invalid_type",
+      "error_description": "Invalid type. Expected: integer, given: string",
+      "error_count": 4,
+      "record_count": 4,
+      "error_percent": 100
+    },
+    "firstName.customErrorFoo": {
+      "field": "firstName",
+      "error_type": "customErrorFoo",
+      "error_description": "I just wanted it to error out :)",
+      "error_count": 4,
+      "record_count": 4,
+      "error_percent": 100
+    },
+    "firstName.customErrorFoo2": {
+      "field": "firstName",
+      "error_type": "customErrorFoo2",
+      "error_description": "I just wanted it to error out again :D",
+      "error_count": 4,
+      "record_count": 4,
+      "error_percent": 100
+    },
+    "lastName.invalid_type": {
+      "field": "lastName",
+      "error_type": "invalid_type",
+      "error_description": "Invalid type. Expected: integer, given: string",
+      "error_count": 4,
+      "record_count": 4,
+      "error_percent": 100
+    },
+    "my_custom_error": {
+      "field": "whole file?",
+      "error_type": "custom_error_apparently",
+      "error_description": "just a summary error",
+      "error_count": 1000,
+      "record_count": 4,
+      "error_percent": 25000
+    },
+    "my_custom_error_counter": {
+      "field": "whole file? yes",
+      "error_type": "custom_error_apparently_of_course",
+      "error_description": "just a summary error fromt he counter",
+      "error_count": 20,
+      "record_count": 4,
+      "error_percent": 500
+    }
+  },
+  "people4.csv": {
+    "firstName.customErrorFoo": {
+      "field": "firstName",
+      "error_type": "customErrorFoo",
+      "error_description": "I just wanted it to error out :)",
+      "error_count": 1,
+      "record_count": 1,
+      "error_percent": 100
+    },
+    "firstName.customErrorFoo2": {
+      "field": "firstName",
+      "error_type": "customErrorFoo2",
+      "error_description": "I just wanted it to error out again :D",
+      "error_count": 1,
+      "record_count": 1,
+      "error_percent": 100
+    },
+    "lastName.invalid_type": {
+      "field": "lastName",
+      "error_type": "invalid_type",
+      "error_description": "Invalid type. Expected: integer, given: string",
+      "error_count": 1,
+      "record_count": 1,
+      "error_percent": 100
+    },
+    "my_custom_error": {
+      "field": "whole file?",
+      "error_type": "custom_error_apparently",
+      "error_description": "just a summary error",
+      "error_count": 1000,
+      "record_count": 1,
+      "error_percent": 100000
+    },
+    "my_custom_error_counter": {
+      "field": "whole file? yes",
+      "error_type": "custom_error_apparently_of_course",
+      "error_description": "just a summary error fromt he counter",
+      "error_count": 5,
+      "record_count": 1,
+      "error_percent": 500
     }
   }
 }

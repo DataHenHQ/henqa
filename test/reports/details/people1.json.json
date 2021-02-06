@@ -12,6 +12,18 @@
         "error_type": "number_gte",
         "description": "Must be greater than or equal to 30",
         "value": 5
+      },
+      {
+        "field": "firstName",
+        "error_type": "customErrorFoo",
+        "description": "I just wanted it to error out :)",
+        "value": "David"
+      },
+      {
+        "field": "firstName",
+        "error_type": "customErrorFoo2",
+        "description": "I just wanted it to error out again :D",
+        "value": "David"
       }
     ],
     "record": {
@@ -24,16 +36,28 @@
   {
     "errors": [
       {
+        "field": "lastName",
+        "error_type": "invalid_type",
+        "description": "Invalid type. Expected: integer, given: string",
+        "value": "Doe"
+      },
+      {
         "field": "age",
         "error_type": "number_gte",
         "description": "Must be greater than or equal to 30",
         "value": 21
       },
       {
-        "field": "lastName",
-        "error_type": "invalid_type",
-        "description": "Invalid type. Expected: integer, given: string",
-        "value": "Doe"
+        "field": "firstName",
+        "error_type": "customErrorFoo",
+        "description": "I just wanted it to error out :)",
+        "value": "John"
+      },
+      {
+        "field": "firstName",
+        "error_type": "customErrorFoo2",
+        "description": "I just wanted it to error out again :D",
+        "value": "John"
       }
     ],
     "record": {
@@ -50,6 +74,18 @@
         "error_type": "invalid_type",
         "description": "Invalid type. Expected: integer, given: string",
         "value": "Doe"
+      },
+      {
+        "field": "firstName",
+        "error_type": "customErrorFoo",
+        "description": "I just wanted it to error out :)",
+        "value": "Maggie"
+      },
+      {
+        "field": "firstName",
+        "error_type": "customErrorFoo2",
+        "description": "I just wanted it to error out again :D",
+        "value": "Maggie"
       }
     ],
     "record": {
@@ -72,6 +108,18 @@
         "error_type": "number_gte",
         "description": "Must be greater than or equal to 30",
         "value": 10
+      },
+      {
+        "field": "firstName",
+        "error_type": "customErrorFoo",
+        "description": "I just wanted it to error out :)",
+        "value": "Kevin"
+      },
+      {
+        "field": "firstName",
+        "error_type": "customErrorFoo2",
+        "description": "I just wanted it to error out again :D",
+        "value": "Kevin"
       }
     ],
     "record": {

@@ -3,7 +3,8 @@ module github.com/DataHenHQ/henqa
 go 1.15
 
 require (
-	github.com/DataHenHQ/datahen v0.0.0-20210129204158-bb9863346b7f
+	github.com/DataHenHQ/datahen v0.0.0-20210206012353-c71b87ce80de
+	github.com/DataHenHQ/henqa_workflows v0.0.0-20210203213601-aa8437a1d0ce
 	github.com/evanphx/json-patch/v5 v5.2.0
 	github.com/ghodss/yaml v1.0.0
 	github.com/mitchellh/go-homedir v1.1.0

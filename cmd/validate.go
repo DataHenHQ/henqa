@@ -38,6 +38,7 @@ henqa validate ./dir1 ./dir2 -s schema1.jos -s schema2.json -r myreport
 			outDir      = ""
 			maxErrors   = -1
 			batchSize   = 0
+			wfname      = ""
 			summaryFile = ""
 			err         error
 		)
@@ -72,7 +73,13 @@ henqa validate ./dir1 ./dir2 -s schema1.jos -s schema2.json -r myreport
 			return
 		}
 
-		err = qa.Validate(args, schemas, outDir, summaryFile, batchSize, maxErrors)
+		wfname, err = cmd.Flags().GetString("workflow")
+		if err != nil {
+			fmt.Errorf("Gotten error: %v\n", err.Error())
+			return
+		}
+
+		err = qa.Validate(args, schemas, wfname, outDir, summaryFile, batchSize, maxErrors)
 		if err != nil {
 			fmt.Errorf("Gotten error: %v\n", err.Error())
 			return
@@ -89,5 +96,6 @@ func init() {
 	validateCmd.Flags().StringP("summary-file", "y", "summary", "The name of the summary file that will be saved")
 	validateCmd.Flags().IntP("batch-size", "b", 10000, "Batch size to process records")
 	validateCmd.Flags().IntP("max", "m", -1, "Limit the max number of errors being saved into the detail file. This is meant to make the file smaller. -1 means no limit.")
+	validateCmd.Flags().StringP("workflow", "w", "", "The name of the workflow that will be executed")
 	validateCmd.MarkFlagRequired("schema")
 }
