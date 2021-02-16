@@ -4,7 +4,7 @@ go 1.15
 
 require (
 	github.com/DataHenHQ/datahen v0.0.0-20210206012353-c71b87ce80de
-	github.com/DataHenHQ/henqa_workflows v0.0.0-20210210174233-a2ca748837a8
+	github.com/DataHenHQ/henqa_workflows v0.0.0-20210216180132-abbc5bde4ab4
 	github.com/davecgh/go-spew v1.1.1
 	github.com/evanphx/json-patch/v5 v5.2.0
 	github.com/ghodss/yaml v1.0.0
