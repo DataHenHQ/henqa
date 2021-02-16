@@ -42,10 +42,6 @@ github.com/DataHenHQ/datahen v0.0.0-20210206012353-c71b87ce80de/go.mod h1:App5L/
 github.com/DataHenHQ/henqa v0.1.13-0.20210206012803-44cfb5805a27/go.mod h1:8DZ/ZZH9dmQiFnEjjQ3vqpSB3xRe23kdL/gR3T1+ggc=
 github.com/DataHenHQ/henqa_workflows v0.0.0-20210203213601-aa8437a1d0ce h1:ASuI+GBVmHR5V3d5WjZ1Wm6FMu6mUtWthueqV2OT7k8=
 github.com/DataHenHQ/henqa_workflows v0.0.0-20210203213601-aa8437a1d0ce/go.mod h1:e3yzQyeuirdSiRBO4906N2zGGtnU15wiPT2sHgaHUkk=
-github.com/DataHenHQ/henqa_workflows v0.0.0-20210206012603-8b43fd5f14c9 h1:rxrurYi2jNyWiNQpbwLSSe579roF4SAcvprPU0MSyqE=
-github.com/DataHenHQ/henqa_workflows v0.0.0-20210206012603-8b43fd5f14c9/go.mod h1:e3yzQyeuirdSiRBO4906N2zGGtnU15wiPT2sHgaHUkk=
-github.com/DataHenHQ/henqa_workflows v0.0.0-20210210174233-a2ca748837a8 h1:clBjuF/s6ibtnkWnu38+DBFDjr6XfYzI2EA7P3ei4Vc=
-github.com/DataHenHQ/henqa_workflows v0.0.0-20210210174233-a2ca748837a8/go.mod h1:wtlObjQF8YogaFPcMrIXNzIPEBs+Db+foX3zA7SM3IE=
 github.com/DataHenHQ/henqa_workflows v0.0.0-20210216180132-abbc5bde4ab4 h1:HKnFkEm9JbTAtoW6naPIUUNSCeXtPlXBuZ5A/mPnykE=
 github.com/DataHenHQ/henqa_workflows v0.0.0-20210216180132-abbc5bde4ab4/go.mod h1:wtlObjQF8YogaFPcMrIXNzIPEBs+Db+foX3zA7SM3IE=
 github.com/OneOfOne/xxhash v1.2.2/go.mod h1:HSdplMjZKSmBqAxg5vPj2TmRDmfkzw+cTzAElWljhcU=
