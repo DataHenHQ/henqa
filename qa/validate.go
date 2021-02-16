@@ -250,7 +250,7 @@ func validateSingleFile(f string, colSchemaLoaders map[string]*gojsonschema.JSON
 
 	// execute workflow for summary
 	if wf != nil {
-		err := wf.ExecSummary(gvars, errStats)
+		err := wf.ExecSummary(gvars, errStats, outDir, f)
 		if err != nil {
 			return false, err
 		}
