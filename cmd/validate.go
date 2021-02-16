@@ -97,5 +97,4 @@ func init() {
 	validateCmd.Flags().IntP("batch-size", "b", 10000, "Batch size to process records")
 	validateCmd.Flags().IntP("max", "m", -1, "Limit the max number of errors being saved into the detail file. This is meant to make the file smaller. -1 means no limit.")
 	validateCmd.Flags().StringP("workflow", "w", "", "The name of the workflow that will be executed")
-	validateCmd.MarkFlagRequired("schema")
 }

@@ -30,7 +30,14 @@ type RecordsValidationResult struct {
 }
 
 func Validate(ins []string, schemas []string, wfname string, outDir string, summaryFile string, batchSize int, maxRecsWithErrors int) (err error) {
-	fmt.Println("validates the data in:", ins, "schemas:", schemas, "outDir:", outDir)
+
+	if len(schemas) == 0 && wfname == "" {
+		msg := "you need to specify either a schema or a workflow or both"
+		fmt.Println(msg)
+		fmt.Println("aborting validation.")
+		return errors.New(msg)
+	}
+
 	files := getListOfFiles(ins)
 	// if len(files) > 0 {
 	// 	fmt.Println("input files are:")
@@ -54,6 +61,11 @@ func Validate(ins []string, schemas []string, wfname string, outDir string, summ
 		fmt.Println("gotten error creating output directory:", err.Error())
 		fmt.Println("aborting validation.")
 		return
+	}
+
+	// if schema is empty, pass validation of everything by using {}
+	if len(mergedSchema) == 0 {
+		mergedSchema = []byte("{}")
 	}
 
 	err = validateWithSchema(files, mergedSchema, wfname, outDir, summaryFile, batchSize, maxRecsWithErrors)
@@ -179,6 +191,7 @@ func validateWithSchema(files []string, schema []byte, wfname string, outDir str
 	// load workflow
 	wf, err := workflows.GetWorkflow(wfname)
 	if err != nil {
+		fmt.Println(err.Error())
 		return err
 	}
 
