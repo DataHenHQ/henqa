@@ -4,7 +4,7 @@ go 1.15
 
 require (
 	github.com/DataHenHQ/datahen v0.0.0-20210206012353-c71b87ce80de
-	github.com/DataHenHQ/henqa_workflows v0.0.0-20210216204017-2f2ddc4658dd
+	github.com/DataHenHQ/henqa_workflows v0.0.0-20210222171018-8434178a67aa
 	github.com/evanphx/json-patch/v5 v5.2.0
 	github.com/ghodss/yaml v1.0.0
 	github.com/mitchellh/go-homedir v1.1.0
