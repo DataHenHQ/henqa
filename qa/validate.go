@@ -29,6 +29,8 @@ type RecordsValidationResult struct {
 	Stats       map[string]*records.CollectionStat `json:"stats"`
 }
 
+var gvars = make(map[string]interface{})
+
 func Validate(ins []string, schemas []string, wfname string, outDir string, summaryFile string, batchSize int, maxRecsWithErrors int) (err error) {
 
 	if len(schemas) == 0 && wfname == "" {
@@ -230,11 +232,20 @@ func validateSingleFile(f string, colSchemaLoaders map[string]*gojsonschema.JSON
 		return false, err
 	}
 
+	// execute workflow for filename validation
+
+	file_type := ""
+	if wf != nil {
+		file_type, err = wf.ExecFilename(f, gvars)
+		if err != nil {
+			return false, err
+		}
+	}
+
 	// process the files and keep stats
 	errStats := map[string]*customtypes.ErrorStat{}
 	var recordCount uint64 = 0
-	gvars := make(map[string]interface{})
-	vbf := validateBatchFn(f, colSchemaLoaders, wf, gvars, outDir, includeCollection, &recordCount, errStats, maxRecsWithErrors)
+	vbf := validateBatchFn(f, colSchemaLoaders, wf, gvars, outDir, includeCollection, &recordCount, errStats, maxRecsWithErrors, file_type)
 	err = processFile(f, batchSize, vbf)
 	if err != nil {
 		fmt.Println("gotten error processing input file ", f, ":", err.Error())
@@ -250,7 +261,7 @@ func validateSingleFile(f string, colSchemaLoaders map[string]*gojsonschema.JSON
 
 	// execute workflow for summary
 	if wf != nil {
-		err := wf.ExecSummary(gvars, errStats, outDir, f)
+		err := wf.ExecSummary(file_type, gvars, errStats, outDir, f)
 		if err != nil {
 			return false, err
 		}
@@ -270,7 +281,7 @@ func validateSingleFile(f string, colSchemaLoaders map[string]*gojsonschema.JSON
 	return false, nil
 }
 
-func validateBatchFn(f string, colSchemaLoaders map[string]*gojsonschema.JSONLoader, wf *workflows.Workflow, gvars map[string]interface{}, outDir string, includeCollection bool, recordCount *uint64, errStats map[string]*customtypes.ErrorStat, maxRecsWithErrors int) records.ValidateFn {
+func validateBatchFn(f string, colSchemaLoaders map[string]*gojsonschema.JSONLoader, wf *workflows.Workflow, gvars map[string]interface{}, outDir string, includeCollection bool, recordCount *uint64, errStats map[string]*customtypes.ErrorStat, maxRecsWithErrors int, file_type string) records.ValidateFn {
 	colstats := make(map[string]*records.CollectionStat)
 	isFirst := true
 	return func(recs []records.RecordGetSetterWithError) (err2 error) {
@@ -299,7 +310,7 @@ func validateBatchFn(f string, colSchemaLoaders map[string]*gojsonschema.JSONLoa
 			// execute workflow for this record
 			if wf != nil {
 				for _, recwe := range recwes {
-					err2 = wf.ExecRecord(recwe, gvars)
+					err2 = wf.ExecRecord(file_type, recwe, gvars)
 					if err2 != nil {
 						return err2
 					}
