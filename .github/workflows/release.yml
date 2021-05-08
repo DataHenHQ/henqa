@@ -30,7 +30,7 @@ jobs:
       - 
         name: Granting private modules access
         run: |
-          git config --global url."https://ABCDEF:x-oauth-basic@github.com/DataHenHQ".insteadOf "https://github.com/DataHenHQ"     
+          git config --global url."https://${{ secrets.GO_MODULES_TOKEN }}:x-oauth-basic@github.com/DataHenHQ".insteadOf "https://github.com/DataHenHQ"     
 
       - 
         name: List git global config
