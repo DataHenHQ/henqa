@@ -16,6 +16,22 @@ package main
 
 import "github.com/DataHenHQ/henqa/cmd"
 
+var (
+	version = ""
+	commit  = ""
+	date    = ""
+)
+
 func main() {
+	if version != "" {
+		cmd.ReleaseVersion = version
+	}
+	if commit != "" {
+		cmd.ReleaseCommit = commit
+	}
+	if date != "" {
+		cmd.ReleaseDate = date
+	}
+
 	cmd.Execute()
 }
