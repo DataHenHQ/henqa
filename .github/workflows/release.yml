@@ -35,7 +35,7 @@ jobs:
       - 
         name: List git global config
         run: |
-          git config --global --list
+          git config --global --list 
 
       # -
       #   name: Run GoReleaser
