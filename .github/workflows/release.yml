@@ -3,12 +3,12 @@ name: goreleaser
 on:
   push:
     branches: [ release ]
-    # tags:
-    #   - 'v*'
+    tags:
+      - 'v*'
   pull_request:
     branches: [ release ]
-    # tags:
-    #   - 'v*'
+    tags:
+      - 'v*'
 jobs:
   goreleaser:
     runs-on: ubuntu-latest
@@ -26,17 +26,13 @@ jobs:
       - 
         name: Granting private modules access
         run: |
-          git config --global url."https://${{ secrets.GO_MODULES_TOKEN }}:x-oauth-basic@github.com/DataHenHQ".insteadOf "https://github.com/DataHenHQ"     
+          git config --global url."https://${{ secrets.GO_MODULES_TOKEN }}:x-oauth-basic@github.com/DataHenHQ".insteadOf "https://github.com/DataHenHQ"
 
-      
-      - name: Build the Go app
-        run: GOOS=linux go build -o henqa main.go 
-
-      # -
-      #   name: Run GoReleaser
-      #   uses: goreleaser/goreleaser-action@v2
-      #   with:
-      #     version: latest
-      #     args: release --rm-dist
-      #   env:
-      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      -
+        name: Run GoReleaser
+        uses: goreleaser/goreleaser-action@v2
+        with:
+          version: latest
+          args: release --rm-dist
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
