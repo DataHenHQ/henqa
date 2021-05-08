@@ -2,11 +2,9 @@ name: goreleaser
 
 on:
   push:
-    branches: [ release ]
     tags:
       - 'v*'
   pull_request:
-    branches: [ release ]
     tags:
       - 'v*'
 jobs:
