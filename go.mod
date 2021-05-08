@@ -1,6 +1,6 @@
 module github.com/DataHenHQ/henqa
 
-go 1.15
+go 1.16
 
 require (
 	github.com/DataHenHQ/datahen v0.0.0-20210206012353-c71b87ce80de
