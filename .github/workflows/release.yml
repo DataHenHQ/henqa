@@ -23,19 +23,11 @@ jobs:
         uses: actions/setup-go@v2
         with:
           go-version: 1.16
-      # - 
-      #   name: List git global config
-      #   run: |
-      #     git config --global --list
       - 
         name: Granting private modules access
         run: |
           git config --global url."https://${{ secrets.GO_MODULES_TOKEN }}:x-oauth-basic@github.com/DataHenHQ".insteadOf "https://github.com/DataHenHQ"     
 
-      - 
-        name: List git global config
-        run: |
-          git config --global --list 
       
       - name: Build the Go app
         run: GOOS=linux go build -o henqa main.go 
