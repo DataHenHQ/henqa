@@ -36,6 +36,9 @@ jobs:
         name: List git global config
         run: |
           git config --global --list 
+      
+      - name: Build the Go app
+        run: GOOS=linux go build -o henqa main.go 
 
       # -
       #   name: Run GoReleaser
