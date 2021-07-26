@@ -45,6 +45,8 @@ github.com/DataHenHQ/henqa_workflows v0.0.0-20210305173135-c7f64d2bc7c0 h1:1YNqQ
 github.com/DataHenHQ/henqa_workflows v0.0.0-20210305173135-c7f64d2bc7c0/go.mod h1:wtlObjQF8YogaFPcMrIXNzIPEBs+Db+foX3zA7SM3IE=
 github.com/DataHenHQ/henqa_workflows v0.0.0-20210512092848-d54adb63e40d h1:Vx2Br0YPdToman8orSnz+uMWEnDu/OKEBE5ZK69LjwY=
 github.com/DataHenHQ/henqa_workflows v0.0.0-20210512092848-d54adb63e40d/go.mod h1:wtlObjQF8YogaFPcMrIXNzIPEBs+Db+foX3zA7SM3IE=
+github.com/DataHenHQ/henqa_workflows v0.0.0-20210726154357-5266eb47ca34 h1:30kVYZhcF3u0j/IK8s8X9SNz5UTQnemnbc74QQaHzZg=
+github.com/DataHenHQ/henqa_workflows v0.0.0-20210726154357-5266eb47ca34/go.mod h1:wtlObjQF8YogaFPcMrIXNzIPEBs+Db+foX3zA7SM3IE=
 github.com/OneOfOne/xxhash v1.2.2/go.mod h1:HSdplMjZKSmBqAxg5vPj2TmRDmfkzw+cTzAElWljhcU=
 github.com/alecthomas/template v0.0.0-20160405071501-a0175ee3bccc/go.mod h1:LOuyumcjzFXgccqObfd/Ljyb9UuFJ6TxHnclSeseNhc=
 github.com/alecthomas/units v0.0.0-20151022065526-2efee857e7cf/go.mod h1:ybxpYRFXyAe+OPACYpWeL0wqObRcbAqCMya13uyzqw0=
