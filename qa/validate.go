@@ -201,7 +201,7 @@ func validateWithSchema(files []string, schema []byte, wfname string, outDir str
 	summaryErrStats := map[string]customtypes.ErrorStats{}
 	for _, f := range files {
 		// validate file
-		shouldContinue, err := validateSingleFile(f, colSchemaLoaders, wf, summaryErrStats, batchSize, outDir, maxRecsWithErrors)
+		shouldContinue, err := validateSingleFile(f, colSchemaLoaders, wf, summaryErrStats, batchSize, outDir, maxRecsWithErrors, wfname)
 		if err != nil {
 			if shouldContinue {
 				continue
@@ -218,7 +218,7 @@ func validateWithSchema(files []string, schema []byte, wfname string, outDir str
 	return nil
 }
 
-func validateSingleFile(f string, colSchemaLoaders map[string]*gojsonschema.JSONLoader, wf *workflows.Workflow, summaryErrStats map[string]customtypes.ErrorStats, batchSize int, outDir string, maxRecsWithErrors int) (shouldContinue bool, err error) {
+func validateSingleFile(f string, colSchemaLoaders map[string]*gojsonschema.JSONLoader, wf *workflows.Workflow, summaryErrStats map[string]customtypes.ErrorStats, batchSize int, outDir string, maxRecsWithErrors int, wfname string) (shouldContinue bool, err error) {
 	// analyze file extension
 	processFile, includeCollection, err := analyzeFileExtension(f)
 	if err != nil {
@@ -235,7 +235,7 @@ func validateSingleFile(f string, colSchemaLoaders map[string]*gojsonschema.JSON
 	// execute workflow for filename validation
 
 	file_type := ""
-	if wf != nil {
+	if wf != nil && wfname == "hero" {
 		file_type, err = wf.ExecFilename(f, gvars)
 		if err != nil {
 			return false, err
