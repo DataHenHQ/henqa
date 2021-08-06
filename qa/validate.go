@@ -245,6 +245,9 @@ func validateSingleFile(f string, colSchemaLoaders map[string]*gojsonschema.JSON
 	// process the files and keep stats
 	errStats := map[string]*customtypes.ErrorStat{}
 	var recordCount uint64 = 0
+	if wfname == "energy" {
+		gvars = make(map[string]interface{})
+	}
 	vbf := validateBatchFn(f, colSchemaLoaders, wf, gvars, outDir, includeCollection, &recordCount, errStats, maxRecsWithErrors, file_type)
 	err = processFile(f, batchSize, vbf)
 	if err != nil {
