@@ -220,7 +220,7 @@ func validateWithSchema(files []string, schema []byte, wfname string, outDir str
 }
 
 func validateSingleFile(f string, colSchemaLoaders map[string]*gojsonschema.JSONLoader, wf *workflows.Workflow, summaryErrStats map[string]customtypes.ErrorStats, batchSize int, outDir string, maxRecsWithErrors int, wfname string) (shouldContinue bool, err error) {
-	wfh := strings.Contains(wfname, "he")
+	wfh := strings.Contains(wfname, "he") || strings.Contains(wfname, "st")
 	// analyze file extension
 	processFile, includeCollection, err := analyzeFileExtension(f, wfh)
 	if err != nil {
