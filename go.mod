@@ -3,8 +3,9 @@ module github.com/DataHenHQ/henqa
 go 1.16
 
 require (
-	github.com/DataHenHQ/datahen v0.0.0-20220706203217-1f1579422416
-	github.com/DataHenHQ/henqa_workflows v0.0.0-20220706205254-f36ad737e2f2
+	github.com/DataHenHQ/datahen v0.1.1
+	github.com/DataHenHQ/henqa_shared v0.1.1
+	github.com/DataHenHQ/henqa_workflows v0.1.1
 	github.com/evanphx/json-patch/v5 v5.6.0
 	github.com/ghodss/yaml v1.0.0
 	github.com/gocarina/gocsv v0.0.0-20220310154401-d4df709ca055 // indirect

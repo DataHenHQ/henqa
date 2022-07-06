@@ -11,7 +11,7 @@ import (
 	yaml "github.com/ghodss/yaml"
 
 	"github.com/DataHenHQ/datahen/records"
-	"github.com/DataHenHQ/henqa/customtypes"
+	"github.com/DataHenHQ/henqa_shared/customtypes"
 	workflows "github.com/DataHenHQ/henqa_workflows"
 	jsonpatch "github.com/evanphx/json-patch/v5"
 	"github.com/xeipuuv/gojsonschema"
