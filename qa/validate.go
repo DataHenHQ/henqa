@@ -7,7 +7,6 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
-	"strings"
 
 	yaml "github.com/ghodss/yaml"
 
@@ -220,9 +219,8 @@ func validateWithSchema(files []string, schema []byte, wfname string, outDir str
 }
 
 func validateSingleFile(f string, colSchemaLoaders map[string]*gojsonschema.JSONLoader, wf *workflows.Workflow, summaryErrStats map[string]customtypes.ErrorStats, batchSize int, outDir string, maxRecsWithErrors int, wfname string) (shouldContinue bool, err error) {
-	wfh := strings.Contains(wfname, "he") || strings.Contains(wfname, "st")
 	// analyze file extension
-	processFile, includeCollection, err := analyzeFileExtension(f, wfh)
+	processFile, includeCollection, err := analyzeFileExtension(f)
 	if err != nil {
 		return true, err
 	}
@@ -237,7 +235,7 @@ func validateSingleFile(f string, colSchemaLoaders map[string]*gojsonschema.JSON
 	// execute workflow for filename validation
 
 	file_type := ""
-	if wf != nil && wfh {
+	if wf != nil {
 		file_type, err = wf.ExecFilename(f, gvars)
 		if err != nil {
 			return false, err
@@ -247,9 +245,9 @@ func validateSingleFile(f string, colSchemaLoaders map[string]*gojsonschema.JSON
 	// process the files and keep stats
 	errStats := map[string]*customtypes.ErrorStat{}
 	var recordCount uint64 = 0
-	if !wfh {
-		gvars = make(map[string]interface{})
-	}
+	// if !wfh {
+	// 	gvars = make(map[string]interface{})
+	// }
 	vbf := validateBatchFn(f, colSchemaLoaders, wf, gvars, outDir, includeCollection, &recordCount, errStats, maxRecsWithErrors, file_type)
 	err = processFile(f, batchSize, vbf)
 	if err != nil {
@@ -338,17 +336,25 @@ func validateBatchFn(f string, colSchemaLoaders map[string]*gojsonschema.JSONLoa
 	}
 }
 
-func analyzeFileExtension(f string, wfh bool) (processFile processFileStreamFn, includeCollection bool, err error) {
+func analyzeFileExtension(f string) (processFile processFileStreamFn, includeCollection bool, err error) {
 	switch filepath.Ext(f) {
 	case ".csv":
 		processFile = records.ProcessCSVFile
 	case ".json":
-		if wfh {
-			processFile = records.ProcessJSONFixFile
-		} else {
+		validJSON, err := records.IsJSON(f)
+		if err != nil {
+			msg := fmt.Sprintf("%s is not a valid json file. Skipping", f)
+			fmt.Println(msg)
+			return nil, false, errors.New(msg)
+		}
+		if validJSON {
 			processFile = records.ProcessJSONFile
+		} else {
+			processFile = records.ProcessNJSONFile
 		}
 		includeCollection = true
+	case ".njson":
+		processFile = records.ProcessNJSONFile
 	default:
 		msg := fmt.Sprintf("%s is not a .csv or .json file. Skipping", f)
 		fmt.Println(msg)
