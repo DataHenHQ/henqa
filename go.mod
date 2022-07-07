@@ -11,7 +11,6 @@ require (
 	github.com/gocarina/gocsv v0.0.0-20220310154401-d4df709ca055 // indirect
 	github.com/magiconair/properties v1.8.6 // indirect
 	github.com/mitchellh/go-homedir v1.1.0
-	github.com/pkg/errors v0.9.1 // indirect
 	github.com/spf13/afero v1.8.2 // indirect
 	github.com/spf13/cobra v1.4.0
 	github.com/spf13/viper v1.10.1
