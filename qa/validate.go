@@ -17,7 +17,7 @@ import (
 	"github.com/xeipuuv/gojsonschema"
 )
 
-type processFileStreamFn func(filename string, batchSize int, validateFn records.ValidateFn) error
+type processFileStreamFn func(filename string, batchSize int, configReaderFn records.ConfigReaderFn, validateFn records.ValidateFn) error
 
 type RecordWrapper struct {
 	Errors []records.SchemaError `json:"errors"`
@@ -233,7 +233,6 @@ func validateSingleFile(f string, colSchemaLoaders map[string]*gojsonschema.JSON
 	}
 
 	// execute workflow for filename validation
-
 	file_type := ""
 	if wf != nil {
 		file_type, err = wf.ExecFilename(f, gvars)
@@ -249,7 +248,7 @@ func validateSingleFile(f string, colSchemaLoaders map[string]*gojsonschema.JSON
 	// 	gvars = make(map[string]interface{})
 	// }
 	vbf := validateBatchFn(f, colSchemaLoaders, wf, gvars, outDir, includeCollection, &recordCount, errStats, maxRecsWithErrors, file_type)
-	err = processFile(f, batchSize, vbf)
+	err = processFile(f, batchSize, wf.ExecConfigReader, vbf)
 	if err != nil {
 		fmt.Println("gotten error processing input file ", f, ":", err.Error())
 		return false, err
