@@ -2,9 +2,12 @@
 # Make sure to check the documentation at http://goreleaser.com
 before:
   hooks:
+    # Set all private repositories
+    - go env -w GOPRIVATE=github.com/DataHenHQ/datahen,github.com/DataHenHQ/henqa_workflows
     # You may remove this if you don't use go modules.
     - go mod download
     # you may remove this if you don't need go generate
+    - go mod tidy
     - go generate ./...
 builds:
   - env:

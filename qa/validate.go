@@ -232,6 +232,11 @@ func validateSingleFile(f string, colSchemaLoaders map[string]*gojsonschema.JSON
 		return false, err
 	}
 
+	// keep gvars when required accross all files
+	if wf == nil || !wf.KeepGvars {
+		gvars = make(map[string]interface{})
+	}
+
 	// execute workflow for filename validation
 	file_type := ""
 	if wf != nil {
@@ -244,9 +249,6 @@ func validateSingleFile(f string, colSchemaLoaders map[string]*gojsonschema.JSON
 	// process the files and keep stats
 	errStats := map[string]*customtypes.ErrorStat{}
 	var recordCount uint64 = 0
-	// if !wfh {
-	// 	gvars = make(map[string]interface{})
-	// }
 	vbf := validateBatchFn(f, colSchemaLoaders, wf, gvars, outDir, includeCollection, &recordCount, errStats, maxRecsWithErrors, file_type)
 	err = processFile(f, batchSize, wf.ExecConfigReader, vbf)
 	if err != nil {
