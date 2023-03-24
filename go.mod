@@ -3,7 +3,7 @@ module github.com/DataHenHQ/henqa
 go 1.16
 
 require (
-	github.com/DataHenHQ/datahen v0.2.1
+	github.com/DataHenHQ/datahen v0.2.2
 	github.com/DataHenHQ/henqa_shared v0.1.1
 	github.com/DataHenHQ/henqa_workflows v0.2.3
 	github.com/evanphx/json-patch/v5 v5.6.0
