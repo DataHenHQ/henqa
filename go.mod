@@ -5,7 +5,7 @@ go 1.16
 require (
 	github.com/DataHenHQ/datahen v0.2.2
 	github.com/DataHenHQ/henqa_shared v0.1.1
-	github.com/DataHenHQ/henqa_workflows v0.2.4
+	github.com/DataHenHQ/henqa_workflows v0.2.5
 	github.com/evanphx/json-patch/v5 v5.6.0
 	github.com/ghodss/yaml v1.0.0
 	github.com/gocarina/gocsv v0.0.0-20220310154401-d4df709ca055 // indirect
